@@ -263,7 +263,7 @@ def quiet_update(user_data):
                 + "* changed in\n" + item.update_string(old_values)  + "\n"
                 
         # update items with changed skus
-        for key, item in sku_changed_items:
+        for key, item in sku_changed_items.items():
             
             del user_items[key]
             user_items[item.dict['sku']] = item
