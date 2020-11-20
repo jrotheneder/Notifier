@@ -258,9 +258,11 @@ def quiet_update(user_data):
                     msg += "\n\nUpdate failed. Item removed?\n"
             
             if(n_changes > 0):
-                msg += "*"
-                msg += ",".join(old_values.keys()) \
-                + "* changed in\n" + item.update_string(old_values)  + "\n"
+                escape_markdown(msg, 2)
+                msg1 = escape_markdown(",".join(old_values.keys()),2)
+                msg2 = escape_markdown("changed in\n" + item.update_string(old_values)  + "\n",2)
+
+                msg += "*" + msg1 + "* " + msg2
                 
         # update items with changed skus
         for key, item in sku_changed_items.items():
@@ -276,7 +278,7 @@ def quiet_update(user_data):
     else:
         msg = "No items tracked, nothing to update."
         
-    return [changeFlag, escape_markdown(msg, 2)]
+    return [changeFlag, msg]
     
 def manual_update(update, context):
     
