@@ -2,6 +2,8 @@ from exceptions import *
 from zara_product import *
 from zalando_product import *
 from uniqlo_product import *
+from cos_product import *
+from hm_product import *
 
 from uuid import uuid4
 import json
@@ -19,7 +21,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 def add(update, context):
 
-    url, item_identifier = context.args[0:2] # second arg should be size or sku
+    url = context.args[0] # second arg should be size or sku
     product = None
 
     # determine site, construct Product
@@ -28,17 +30,25 @@ def add(update, context):
         # TODO these checks are problematic if we add zara home; see also
         # restore function
         if('zalando' in url):
+            item_identifier = context.args[1]
             product = ZalandoProduct.fromUrlSize(url, item_identifier) 
 
         elif('zara' in url):
-            
+            item_identifier = context.args[1]
             if(len(item_identifier) < 5): # size
                 product = ZaraProduct.fromUrlSize(url, item_identifier)
             else:
                 product = ZaraProduct.fromUrlSku(url, item_identifier)
 
         elif('uniqlo' in url):
+            item_identifier = context.args[1]
             product = UniqloProduct.fromUrlSize(url, item_identifier) 
+
+        elif('cosstores' in url): 
+            product = CosProduct.fromUrl(url) 
+
+        elif('hm' in url): 
+            product = HmProduct.fromUrl(url) 
 
         else:
             raise UnknownCommandError("neither zalando, zara nor uniqlo url \
@@ -391,13 +401,17 @@ def restore_from_online_json(update, context):
     for sku, prod_dict in json_dict.items(): 
         url = prod_dict['url']  
 
-        # TODO these checks may be problematic if we add zara home
+        # TODO careful with order once adding zara home
         if('zalando' in url): 
             item_dict[sku] = ZalandoProduct(prod_dict) 
         elif('zara' in url): 
             item_dict[sku] = ZaraProduct(prod_dict) 
         elif('uniqlo' in url):
             item_dict[sku] = UniqloProduct(prod_dict) 
+        elif('cosstores' in url):
+            item_dict[sku]  = CosProduct(prod_dict) 
+        elif('hm' in url):
+            item_dict[sku]  = HmProduct(prod_dict) 
         
     context.user_data['fashion_items'] = item_dict
     
