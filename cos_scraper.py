@@ -31,6 +31,7 @@ class CosScraper:
         jsonStr = script.contents[0]
         jsonStr = jsonStr[jsonStr.find('{') - 1 : jsonStr.rfind('}')+1]
         jsonStr = jsonStr.replace('\'','\"').replace('\r','\n') 
+        jsonStr = jsonStr.replace("%\"/","%\",") 
 
         parser = JsonComment(json) 
         jsonObj = parser.loads(jsonStr) 

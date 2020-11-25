@@ -32,6 +32,7 @@ class HmScraper:
         jsonStr = jsonStr[jsonStr.find('= {') + 1 : jsonStr.rfind('}')+1]
         jsonStr = jsonStr.replace('\'','\"').replace('\r','\n')
         jsonStr = re.sub("isDesktop \?.* : ", "", jsonStr)
+        jsonStr = jsonStr.replace("%\"/","%\",") 
 
         jsonObj = json.loads(jsonStr) 
 
