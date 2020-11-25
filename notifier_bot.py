@@ -293,6 +293,9 @@ def quiet_update(user_data):
 def manual_update(update, context):
     
     [changeFlag, msg] = quiet_update(context.user_data)
+
+    logging.info("manual update called at " + str(datetime.now()))
+    logging.info(msg + "\n\n")
         
     if(len(msg) > 4096): 
         messages = split_messages(msg, 4096)
