@@ -1,6 +1,8 @@
 from product import Product
 from zara_scraper import ZaraScraper
 
+from exceptions import *
+
 class ZaraProduct(Product):
         
     def __init__(self, productDict):

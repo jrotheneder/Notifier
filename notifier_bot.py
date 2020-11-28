@@ -255,25 +255,25 @@ def quiet_update(user_data):
                 [n_changes, old_values] = item.update()
                 
             except SkuNotFoundException as ex:
-                msg += str(ex) + "\n\nTrying to update sku of item\n\n" + str(item)
+                msg += escape_markdown(str(ex) + "\n\nTrying to update sku of item\n\n" +\
+                    str(item), 2)
                 
                 try:
                     [n_changes, old_values] = item.updateSku()
-                    msg += "\n\nupdated item sku to " + item.dict['sku'] +\
-                        " - you should verify I got this right\n"
+                    msg += escape_markdown("\n\nupdated item sku to " + item.dict['sku'] +\
+                        " - you should verify I got this right\n",2)
                     
                     sku_changed_items[key] = item
                      
                 except SkuNotFoundException as ex1:
-                    msg += "\n\nUpdate failed. Item removed?\n"
-            
+                    msg += escape_markdown("\n\nUpdate failed. Item removed?\n",2)
+
             if(n_changes > 0):
-                escape_markdown(msg, 2)
                 msg1 = escape_markdown(",".join(old_values.keys()),2)
                 msg2 = escape_markdown("changed in\n" + item.update_string(old_values)  + "\n",2)
 
                 msg += "*" + msg1 + "* " + msg2
-                
+
         # update items with changed skus
         for key, item in sku_changed_items.items():
             
@@ -305,7 +305,8 @@ def manual_update(update, context):
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, 
             text=msg, parse_mode=ParseMode.MARKDOWN_V2)
-    
+
+    # TODO remove 
     global user_context
     user_context = context
     
@@ -322,7 +323,7 @@ def start_regular_update(update, context):
     
     # TODO this is duplicated in stop_regular_update, surely 
     # there is a nicer way
-    job_name = "monitor"
+    job_name = "monitor_" + str(context_dict['id'])
     
     if job_name not in [j.name for j in context.job_queue.jobs()]:
 
@@ -341,7 +342,7 @@ def start_regular_update(update, context):
     
 def stop_regular_update(update, context):
 
-    job_name = "monitor"
+    job_name = "monitor_" + str(update.message.chat_id)
     job_list = context.job_queue.get_jobs_by_name(job_name)
     
     for job in job_list:
