@@ -75,8 +75,10 @@ def add(update, context):
     if(sku not in user_items):
         user_items[sku] = product
 
+        msg = "Item added succesfully\n\n" + str(product) + "\n"
+
         context.bot.send_message(chat_id=update.effective_chat.id, 
-        text= "Item added succesfully")
+        text=msg)
         
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, 
@@ -85,16 +87,17 @@ def add(update, context):
 
 def remove(update, context):
 
-    sku = context.args[0]
+    skus = context.args
     
-    try:
-        del context.user_data['fashion_items'][sku]
-        msg = "Item removed succesfully"
-    except KeyError:
-        msg = "Item was not tracked or sku not found"
+    for sku in skus: 
+        try:
+            del context.user_data['fashion_items'][sku]
+            msg = "Item " + sku + " removed succesfully"
+        except KeyError:
+            msg = "Item " + sku + " was not tracked or sku not found"
         
-    context.bot.send_message(chat_id=update.effective_chat.id, 
-                             text=msg)
+        context.bot.send_message(chat_id=update.effective_chat.id, 
+                                 text=msg)
     
 def empty(update, context):
     
@@ -199,26 +202,26 @@ def msg(update, context):
 def help(update, context):
     
     cmds = ["/help", "/info <url>", "/add <url> <size>", 
-            "/add <url> <sku>", "/list", "/remove <sku>", "/update",
-            "/monitor", "/stop_monitor", "/backup", "/restore <url>",
+            "/add <url> <sku>", "/list", "/remove <sku1> [<sku2> ...]", "/update",
+            "/monitor [<period in seconds>]", "/stop_monitor", "/backup", "/restore <url>",
             "/msg <message>"]
     
     helpstrings = ["display usage information",
 "get overview of available variants of item corresponding\
 to given url, including sku (stock keeping unit) numbers",
 "add product with given url and specified size \
-(XS-XXL or numeric depending on product) to the list of tracked items. This \
+(XS-XXL or numeric depending on product) to the list of tracked items. On Zara, this \
 only works, if the product only comes in a single variant (e.g. \
-one color only)",
+one color only). ",
 "Add product with given url and sku to the list of \
-tracked items. Used for products with multiple variants. \
+tracked items. Only needed for Zara products with multiple variants . \
 Skus are of the form 54614904-250-2 or 54614904-250-38 \
 where the last number determines size and the number in the middle \
 determines product variant. They can be queried with /info",
 "list currently tracked products",
 "Remove product with given sku from tracking",
 "Check for changes in tracked products (experimental!)",
-"Start automatic monitoring (experimental!)",
+"Start automatic monitoring at intervals of period  (experimental!, period 1800s recommended)",
 "Stop automatic monitoring (experimental!)",
 "Generate a .json file containing information about currently tracked items",
 "Restore from a backup in the form of a .json file, which must be downloadable \
@@ -227,8 +230,8 @@ at the supplied url (use e.g. pastebin.com and raw urls for this)",
  - include your telegram handle if you want a reply ;)"
 ]
     
-    msg = "Below are listed the available commands and their arguments (which are written in \
-brackets). E.g. the command /info <url> would be executed as /info www.zara.com/someproductpage.html\n\n" + "\n\n".join([cmd + "  :  " + helpstr for cmd, helpstr in zip(cmds, helpstrings)])
+    msg = "Below are listed the available commands, their arguments (which are written in \
+between < and >) and optional arguments (in brackets). E.g. the command /info <url> would be executed as /info www.zara.com/someproductpage.html\n\n" + "\n\n".join([cmd + "  :  " + helpstr for cmd, helpstr in zip(cmds, helpstrings)])
     
     context.bot.send_message(chat_id=update.effective_chat.id, 
         text=msg)
