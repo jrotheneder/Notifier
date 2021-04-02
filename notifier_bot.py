@@ -153,6 +153,8 @@ def zara_item_info(update, context):
     if(not 'zara' in url):
         raise UnknownCommandError("/info only works for zara items\n") 
     
+        
+def zara_info_helper(update, context): 
     try:
         [name, skus, sizes, images] = ZaraScraper.skuSummary(url)
     
@@ -190,7 +192,6 @@ def zara_item_info(update, context):
     except SkuNotFoundException as ex:
         context.bot.send_message(chat_id=update.effective_chat.id, 
             text=str(ex))
-        
             
 def msg(update, context):
     
