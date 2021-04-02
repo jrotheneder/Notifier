@@ -22,23 +22,19 @@ class CosScraper:
         res = requests.get(url, headers=headers)
         soup = bs4.BeautifulSoup(res.content,'html.parser')
 
-        script = soup.find('script', text = re.compile('productArticleDetails'))
+        scripts = soup.find_all('script')
+        jsonObj = None
 
-        if(script == None):
-            raise SkuNotFoundException("sku not found in getProductList(). "
-            " Does the url " + url + " still exist?")
+        for script in scripts:
+            if len(script.contents) and '@context' in script.contents[0]\
+                and 'description' in script.contents[0]:
 
-        jsonStr = script.contents[0]
-        jsonStr = jsonStr[jsonStr.find('{') - 1 : jsonStr.rfind('}')+1]
-        jsonStr = jsonStr.replace('\'','\"').replace('\r','\n') 
-        jsonStr = jsonStr.replace("%\"/","%\",") 
-
-        parser = JsonComment(json) 
-        jsonObj = parser.loads(jsonStr) 
+                jsonStr = script.contents[0]
+                jsonObj = json.loads(jsonStr.replace("\n",""))
 
         if(jsonObj == None):
             raise SkuNotFoundException("sku not found in getProductList(). Does the url " + url + " still exist?")
-
+            
         return jsonObj
     
     @staticmethod
@@ -61,13 +57,13 @@ class CosScraper:
         sku = CosScraper.skuFromUrl(url) 
         jsonObj = CosScraper.getProductList(url)
 
-        unit = jsonObj[sku]  
+        #color = jsonObj["color"]
+        name  = jsonObj["name"]
+        price = jsonObj["offers"][0]["price"]  
+        stock = jsonObj["offers"][0]["availability"].split("/")[-1]  
 
-        name = unit["title"]  
-        price = unit["price"]  
-        color = unit["colorLoc"]
-
-        productJson = {'sku':sku, 'name' : name, 'url':url, 'price':price, 'color': color }
+        productJson = {'sku':sku, 'name' : name, 'url':url, 'price':price,
+                'stock': stock, }
         
         return productJson
     

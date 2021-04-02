@@ -5,7 +5,7 @@ from zara_product import ZaraProduct
 
 def test(): 
 
-    url2 = "https://www.zara.com/at/en/textured-sweater-p03332309.html"
+    url2 = "https://www.zara.com/at/en/comfort-flannel-trousers-p07380362.html?v1=84996070"
     url3 = "https://www.zara.com/at/en/leather-brogue-boots-p12020620.html"
 
     zp = ZaraProduct.fromUrlSku(url2, "83342030-800-3")

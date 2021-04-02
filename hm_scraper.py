@@ -22,7 +22,7 @@ class HmScraper:
         res = requests.get(url, headers=headers)
         soup = bs4.BeautifulSoup(res.content,'html.parser')
 
-        script = soup.find('script', text = re.compile('productArticleDetails'))
+        script = soup.find('script', id = 'product-schema')
 
         if(script == None):
             raise SkuNotFoundException("sku not found in getProductList(). "
@@ -57,17 +57,16 @@ class HmScraper:
     @staticmethod
     def getProductFromUrl(url):
         
-
         sku = HmScraper.skuFromUrl(url) 
         jsonObj = HmScraper.getProductList(url)
 
-        unit = jsonObj[sku]  
+        color = jsonObj["color"]
+        name  = jsonObj["name"]
+        price = jsonObj["offers"][0]["price"]  
+        stock = jsonObj["offers"][0]["availability"].split("/")[-1]  
 
-        color = unit["name"]
-        name = jsonObj["alternate"].split("-")[0]  
-        price = unit["redPrice"] if "redPrice" in unit else unit["whitePrice"]  
-
-        productJson = {'sku':sku, 'name' : name, 'url':url, 'price':price, 'color': color }
+        productJson = {'sku':sku, 'name' : name, 'url':url, 'price':price,
+                'stock': stock, 'color': color }
         
         return productJson
     
