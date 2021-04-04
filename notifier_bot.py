@@ -152,6 +152,8 @@ def zara_item_info(update, context):
 
     if(not 'zara' in url):
         raise UnknownCommandError("/info only works for zara items\n") 
+
+    zara_info_helper(update, context)  
     
         
 def zara_info_helper(update, context): 
