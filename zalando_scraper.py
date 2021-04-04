@@ -21,7 +21,6 @@ class ZalandoScraper:
         soup = bs4.BeautifulSoup(res.content,'html.parser')
 
         script = soup.find('script', id = 'product-schema')
-        print(script) 
 
         if(script == None):
             raise SkuNotFoundException("sku not found in getProductList(). Does the url " + url + " still exist?")

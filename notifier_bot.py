@@ -11,7 +11,7 @@ import os, sys, tempfile
 import urllib.request, urllib.parse
 from datetime import datetime
 
-from telegram.ext import Updater, CommandHandler, Filters, PicklePersistence
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, PicklePersistence
 from telegram import InputMediaPhoto, ParseMode
 from telegram.utils.helpers import escape_markdown
 
@@ -146,17 +146,32 @@ def list_tracked_items(update, context):
             context.bot.send_message(chat_id=update.effective_chat.id, 
                                  text=m, parse_mode=ParseMode.MARKDOWN_V2)
     
-def zara_item_info(update, context):
+def command_item_info(update, context): # called via info command
         
     url = ZaraScraper.cleanUrl(context.args[0])
 
-    if(not 'zara' in url):
-        raise UnknownCommandError("/info only works for zara items\n") 
+    if('zara' in url): 
+        zara_item_info_helper(update, context, url)
 
-    zara_info_helper(update, context)  
-    
+    else: 
+        context.bot.send_message(chat_id=update.effective_chat.id, \
+                text= "send a zara url to get item information")
+        raise UnknownCommandError("Unknown command") 
+
+def default_item_info(update, context): # called as default without command
+
+    url = ZaraScraper.cleanUrl(update.message.text)
+
+    if('zara' in url): 
+        zara_item_info_helper(update, context, url)
+
+    else: 
+        context.bot.send_message(chat_id=update.effective_chat.id, \
+                text= "send a zara url to get item information")
+        raise UnknownCommandError("Unknown command") 
+
         
-def zara_info_helper(update, context): 
+def zara_item_info_helper(update, context, url): 
     try:
         [name, skus, sizes, images] = ZaraScraper.skuSummary(url)
     
@@ -359,7 +374,6 @@ def stop_regular_update(update, context):
 
         
 def regular_update_callback(context):
-    
                 
     [changeFlag, msg] = quiet_update(
         context.job.context['user_data'])

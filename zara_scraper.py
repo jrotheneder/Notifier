@@ -24,17 +24,14 @@ class ZaraScraper:
         res = requests.get(url, headers=headers)
         soup = bs4.BeautifulSoup(res.content,'html.parser')
 
-        scripts = soup.find_all('script')
-        jsonObj = None
+        script = soup.find('script', type='application/ld+json')
 
-        for script in scripts:
-            if len(script.contents) and '@context' in script.contents[0]\
-                and 'description' in script.contents[0]:
+        try: 
 
-                jsonStr = script.contents[0]
-                jsonObj = json.loads(jsonStr.replace("\n",""))
+            jsonStr = script.contents[0]
+            jsonObj = json.loads(jsonStr.replace("\n",""))
 
-        if(jsonObj == None):
+        except:
             raise SkuNotFoundException("sku not found in getProductList(). Does the url " + url + " still exist?")
             
         return jsonObj

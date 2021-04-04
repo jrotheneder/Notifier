@@ -6,12 +6,12 @@ from zara_product import ZaraProduct
 def test(): 
 
     url2 = "https://www.zara.com/at/en/comfort-flannel-trousers-p07380362.html?v1=84996070"
-    url3 = "https://www.zara.com/at/en/leather-brogue-boots-p12020620.html"
+    url3 = "https://www.zara.com/at/en/share/viscose-and-linen-shirt---limited-edition-p04177015.html"
 
-    zp = ZaraProduct.fromUrlSku(url2, "83342030-800-3")
+    zp = ZaraProduct.fromUrlSku(url3, "90014465-250-2")
     print(zp,"\n")
 
-    zp = ZaraProduct.fromUrlSize(url3, "46")
+    zp = ZaraProduct.fromUrlSize(url3, "S")
     print(zp, "\n")
 
     print(zp.update())
