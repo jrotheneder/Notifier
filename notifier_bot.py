@@ -173,39 +173,18 @@ def default_item_info(update, context): # called as default without command
         
 def zara_item_info_helper(update, context, url): 
     try:
-        [name, skus, sizes, images] = ZaraScraper.skuSummary(url)
+        [name, products] = ZaraScraper.skuSummary(ZaraScraper.getProductList(url))
     
         msg = "Product: " + name + "\nUrl: " + url + "\nFound "\
-            + str(len(skus)) + " variant(s) in sizes "\
-            + sizes[0] + "-" + sizes[-1]
+                + str(len(products)) + " colors:\n\n"
 
-        if(len(sizes[0]) == 1): # single digit numeric sizes encode XS-XXL (hopefully without exception)
-            msg += " (" + ZaraScraper.numToSize[sizes[0]] + "-"\
-            + ZaraScraper.numToSize[sizes[-1]] + ")"
+        for color_name, slist in product.items():
+            msg += (color_name + ":\n" + "\n".join([entry[0]  + " (" + entry[1] + ")" for entry
+                in slist]) + "\n") 
 
         context.bot.send_message(chat_id=update.effective_chat.id, 
-            text=msg)
+                text=msg)
 
-        for sku in skus: 
-
-            cap = sku + "-[" + sizes[0] + "-" + sizes[-1] + "]"
-
-            # sending all images gives a lot of bad request errors
-            n_images = 2 # images to send
-            send_images = [InputMediaPhoto(image) 
-                           for image in images[sku]][0:n_images]
-
-            if(len(send_images) == 0):
-                context.bot.send_message(chat_id=update.effective_chat.id, 
-                    text="failed to retrieve images from server \
-                    for " + cap)
-            else:
-                send_images[0] = InputMediaPhoto(images[sku][0],
-                                caption = cap)
-
-                context.bot.send_media_group(chat_id
-                    = update.effective_chat.id, media=send_images)
-    
     except SkuNotFoundException as ex:
         context.bot.send_message(chat_id=update.effective_chat.id, 
             text=str(ex))

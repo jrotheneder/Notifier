@@ -1,7 +1,7 @@
 import requests
 import bs4
 import json
-#import re
+import re
 
 from exceptions import *
 
@@ -24,131 +24,88 @@ class ZaraScraper:
         res = requests.get(url, headers=headers)
         soup = bs4.BeautifulSoup(res.content,'html.parser')
 
-        script = soup.find('script', type='application/ld+json')
+# TODO del
+#       script1 = soup.find('script', type='application/ld+json')
+        
+        p = re.compile(("zara\.viewPayload = ({.*});"))
+        script2 = p.findall(soup.text)
 
         try: 
 
-            jsonStr = script.contents[0]
-            jsonObj = json.loads(jsonStr.replace("\n",""))
+# TODO del
+#           jsonStr1 = script1.contents[0]
+#           jsonObj1 = json.loads(jsonStr1.replace("\n",""))
+
+            assert(len(script2) == 1)
+            jsonStr2 = script2[0]  
+            jsonObj2 = json.loads(jsonStr2.replace("\n",""))
+
+# TODO del
+#           print(json.dumps(jsonObj2["product"], indent=4, sort_keys=True))
 
         except:
             raise SkuNotFoundException("sku not found in getProductList(). Does the url " + url + " still exist?")
             
-        return jsonObj
+        return jsonObj2["product"]  
     
     @staticmethod
     def getProductFromSku(url, sku):
-        
-        #logging.info("url = " + url + " sku = " + sku)
 
         jsonObj = ZaraScraper.getProductList(url)
-        productJson = ZaraScraper.extract(jsonObj, sku)
+        return ZaraScraper.extract(jsonObj, url, sku) 
+
+    @staticmethod
+    def getProductFromSize(url, size):
+
+        jsonObj = ZaraScraper.getProductList(url)
+        [name, sku_sizes] = ZaraScraper.skuSummary(jsonObj)
         
-        return ZaraScraper.compress(productJson)
-    
+        if(len(sku_sizes) > 1):
+            raise(RuntimeError("There seems to be more than one variant of this \
+                product. Need to construct with sku"))
+            
+        for color, skulist in sku_sizes.items():
+            for sku_size in skulist:
+                if(sku_size[1] == size): 
+
+                    sku = sku_size[0]  
+                    productData = ZaraScraper.extract(jsonObj, url, sku) 
+
+                    return productData
+
+    @staticmethod
+    def extract(jsonObj, url, sku): 
+        """
+        Given jsonObj and sku, extract relevant information about the item with
+        the given sku
+        """
+        product_name = jsonObj['name']
+
+        for color in jsonObj["detail"]["colors"]:
+            for size in color["sizes"]: 
+                if(str(size["sku"]) == sku):  # found it 
+
+                    price = str(size["price"])[0:2] + "." + str(size["price"])[2:4]   
+                    size_name = size["name"]   
+                    availability = size["availability"]  
+                    color_name = color["name"]  
+                    
+                    return {'sku':sku, 'name':product_name, 'color':color_name, 'url':url,\
+                        'price':price, 'size': size_name, 'availability':availability}  
+
+        raise SkuNotFoundException("sku " + sku + " not found in extract() (but > 0 skus found). Correct sku?")
+
     @staticmethod
     def cleanUrl(url):
         # with html queries attached, the sku received varies (?)
         return url.split('?')[0]
                
     @staticmethod
-    def extract(jsonObj, sku):
-        """ Given a list of skus and an individual sku, returns 
-        a json containing the essential information about that sku
-        """
+    def skuSummary(jsonObj):
         
-        
-        for product in jsonObj:
-            if(product['sku'] == sku):
-                return product
+        name = jsonObj['name']
+        sku_sizes = {}
 
-        raise(SkuNotFoundException("sku not found in extract()"))
-    
-    @staticmethod
-    def compress(productJson):
-        """ Given a json describing an individual sku, returns 
-        a flattened and simplified json containing only essential info"""
-
-        sku = productJson['sku']
-        name = productJson['name']
-        url = productJson['offers']['url']
-        price = productJson['offers']['price']
-        size = ZaraScraper.skuToSize(sku)
-        availability = productJson['offers']['availability'].split("/")[-1]
-
-        return {'sku':sku, 'name':name, 'url':url, 'price':price, 
-                'size': size, 'availability':availability}  
-    
-    @staticmethod
-    def skuSummary(url):
-        
-        jsonObj = ZaraScraper.getProductList(url)
-        
-        name = jsonObj[0]['name']
-
-        # determine trimmed skus (with sizes trimmed, i.e. one 
-        # per variant) as well as offered sizes
-        skus = [product['sku'] for product in jsonObj]
-        
-        sizes = sorted(list(set([sku.split('-')[-1] for sku in skus])))
-        skus = sorted(list(set(ZaraScraper.trimSku(sku) 
-            for sku in skus)))
-        
-        rep_skus = [sku + "-" + sizes[0] for sku in skus]
-        images = {ZaraScraper.trimSku(p['sku']) : p['image'][:-1] 
-                  for p in jsonObj if p['sku'] in rep_skus}
-        
-        return [name, skus, sizes, images]
-        
-    
-    @staticmethod
-    def printProductList(url):
-        """ Pretty print output of getProductList() """
-        
-        jsonObj = ZaraScraper.getProductList(url)
-
-        for product in jsonObj:
-            name = product['name']
-            sku = product['sku']
-            price = product['offers']['price']
-            availabililty = product['offers']['availability'].split('/')[-1]
-
-            print('Name: %s   SKU: %s   Price: %0.2f  Availability: %s' %(name,
-                sku, float(price), availabililty))
-            
-    @staticmethod
-    def trimSku(sku):
-        return '-'.join(sku.split('-')[0:2])
-    
-    @staticmethod            
-    def skuList(jsonObj):
-        """return list of (trimmed) skus found in jsonObj (i.e. 
-        one per item variant)
-        """
-        
-        skus = [product['sku'] for product in jsonObj]
-        skus = list(set(ZaraScraper.trimSku(sku) for sku in skus))
-                
-        return skus
-    
-    @staticmethod    
-    def skuToSize(sku):
-    
-        sizeStr = sku.split('-')[-1]
-
-        if(len(sizeStr) == 1):
-            sizeStr = ZaraScraper.numToSize[sizeStr]
-    
-        return sizeStr
-    
-    @staticmethod
-    def sizeToSkuPostfix(size):
-        
-        
-        if(size.isnumeric()):
-            return size
-        else:
-            try: 
-                return ZaraScraper.sizeToNum[size]
-            except KeyError:
-                raise RuntimeError("Invalid Size")
+        for color in jsonObj["detail"]["colors"]:
+            sku_sizes[color["name"]] = [(str(size["sku"]), size["name"]) for size in color["sizes"]]  
+        return [name, sku_sizes]
