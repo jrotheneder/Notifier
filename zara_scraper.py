@@ -24,24 +24,14 @@ class ZaraScraper:
         res = requests.get(url, headers=headers)
         soup = bs4.BeautifulSoup(res.content,'html.parser')
 
-# TODO del
-#       script1 = soup.find('script', type='application/ld+json')
-        
         p = re.compile(("zara\.viewPayload = ({.*});"))
-        script2 = p.findall(soup.text)
+        match = p.findall(str(soup))
 
         try: 
 
-# TODO del
-#           jsonStr1 = script1.contents[0]
-#           jsonObj1 = json.loads(jsonStr1.replace("\n",""))
-
-            assert(len(script2) == 1)
-            jsonStr2 = script2[0]  
+            assert(len(match) == 1)
+            jsonStr2 = match[0]  
             jsonObj2 = json.loads(jsonStr2.replace("\n",""))
-
-# TODO del
-#           print(json.dumps(jsonObj2["product"], indent=4, sort_keys=True))
 
         except:
             raise SkuNotFoundException("sku not found in getProductList(). Does the url " + url + " still exist?")
