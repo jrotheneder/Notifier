@@ -133,9 +133,9 @@ def list_tracked_items(update, context):
 
         for groupname, group in groups.items(): 
             
-            messages.append("\n\n*" + groupname.capitalize() + ":*\n\n"\
-            + "\n\n".join([escape_markdown(str(item), 2) for item in group]) + "\n\n")
-
+            messages.append("\n\n*" + groupname.capitalize() + ":* " + str(len(group))\
+                    + " item\(s\)\n\n" + "\n\n".join([escape_markdown(str(item), 2) for \
+                    item in group]) + "\n\n") 
     else:
         messages.append("Currently, no items are tracked")
         
@@ -178,9 +178,9 @@ def zara_item_info_helper(update, context, url):
         msg = "Product: " + name + "\nUrl: " + url + "\nFound "\
                 + str(len(products)) + " colors:\n\n"
 
-        for color_name, slist in product.items():
+        for color_name, slist in products.items():
             msg += (color_name + ":\n" + "\n".join([entry[0]  + " (" + entry[1] + ")" for entry
-                in slist]) + "\n") 
+                in slist]) + "\n\n") 
 
         context.bot.send_message(chat_id=update.effective_chat.id, 
                 text=msg)
