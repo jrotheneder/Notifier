@@ -40,40 +40,5 @@ class ZaraProduct(Product):
             
         return [len(changed_values), changed_values]
     
-    def updateSku(self):
-        
-        jsonObj = ZaraScraper.getProductList(self.dict['url'])
-        new_skus = ZaraScraper.skuList(jsonObj) #trimmed skus ie no size
-        
-        old_sku = self.dict['sku'] #untrimmed
-        
-        if(len(new_skus) == 1): # one variant
-            
-            size_postfix = old_sku.split("-")[-1]
-            new_sku = new_skus[0] + "-" + size_postfix
-            
-            self.dict['sku'] = new_sku
-            
-            return self.update()
-
-        
-        elif(len(new_skus) > 1): # more than one variant
-        
-            for sku in new_skus:
-
-                #check if three digit variant ID agrees (this assumes 
-                # that said three digit ID does not change on ZARA's side)
-                if(sku.split('-')[-1] == old_sku.split('-')[-2]):
-
-                    new_sku = old_sku.split('-')
-                    new_sku[0] = sku.split('-')[0]
-                    self.dict['sku'] = '-'.join(new_sku)
-
-                    return self.update()
-                
-            
-        raise SkuNotFoundException("updating sku of product " + str(self) +
-                                  " failed in updateSku()")
-    
     def productType(self):
         return "zara"

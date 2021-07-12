@@ -255,30 +255,13 @@ def quiet_update(user_data):
                 [n_changes, old_values] = item.update()
                 
             except SkuNotFoundException as ex:
-                msg += escape_markdown(str(ex) + "\n\nTrying to update sku of item\n\n" +\
-                    str(item), 2)
+                msg += escape_markdown(str(ex), 2)
                 
-                try:
-                    [n_changes, old_values] = item.updateSku()
-                    msg += escape_markdown("\n\nupdated item sku to " + item.dict['sku'] +\
-                        " - you should verify I got this right\n",2)
-                    
-                    sku_changed_items[key] = item
-                     
-                except SkuNotFoundException as ex1:
-                    msg += escape_markdown("\n\nUpdate failed. Item removed?\n",2)
-
             if(n_changes > 0):
                 msg1 = escape_markdown(",".join(old_values.keys()),2)
                 msg2 = escape_markdown("changed in\n" + item.update_string(old_values)  + "\n",2)
 
                 msg += "*" + msg1 + "* " + msg2
-
-        # update items with changed skus
-        for key, item in sku_changed_items.items():
-            
-            del user_items[key]
-            user_items[item.dict['sku']] = item
                 
         if(msg == ""):
             msg = "No changes detected"

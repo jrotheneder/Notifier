@@ -29,7 +29,7 @@ class ZalandoScraper:
         jsonObj = json.loads(jsonStr.replace("\n",""))['model']['articleInfo']
 
         if(jsonObj == None):
-            raise SkuNotFoundException("sku not found in getProductList(). Does the url " + url + " still exist?")
+            raise SkuNotFoundException("Nothing found in getProductList(). Does the url " + url + " still exist?")
             
         return jsonObj
     

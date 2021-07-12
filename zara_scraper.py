@@ -34,7 +34,8 @@ class ZaraScraper:
             jsonObj2 = json.loads(jsonStr2.replace("\n",""))
 
         except:
-            raise SkuNotFoundException("sku not found in getProductList(). Does the url " + url + " still exist?")
+            raise SkuNotFoundException("Nothing found in getProductList(). Does \
+                    the url " + url + " still exist?")
             
         return jsonObj2["product"]  
     
@@ -83,7 +84,7 @@ class ZaraScraper:
                     return {'sku':sku, 'name':product_name, 'color':color_name, 'url':url,\
                         'price':price, 'size': size_name, 'availability':availability}  
 
-        raise SkuNotFoundException("sku " + sku + " not found in extract() (but > 0 skus found). Correct sku?")
+        raise SkuNotFoundException("sku " + sku + " not found in extract() (but > 0 skus found). Correct sku, item available?")
 
     @staticmethod
     def cleanUrl(url):

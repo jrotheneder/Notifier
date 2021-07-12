@@ -30,14 +30,6 @@ class CosProduct(Product):
             
         return [len(old_values), old_values]
 
-    def updateSku(self):
-        """
-        Updating skus is not possible/sensible for cos
-        """
-        
-        raise SkuNotFoundException("updating sku of product " + str(self) +
-                                  " failed in updateSku()")
-
     def productType(self):
         return "cos"
 
