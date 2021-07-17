@@ -25,20 +25,46 @@ class ZaraProduct(Product):
         url = self.dict['url']
         sku = self.dict['sku']
         
-        newDict = ZaraScraper.getProductFromSku(url, sku)    
+        jsonObj = ZaraScraper.getProductList(url) 
+
+        try: 
+            new_product_dict = ZaraScraper.extract(jsonObj, url, sku)
                 
-        if(len(self.dict) != len(newDict)):
-            raise RuntimeError("Error in update(): new dict has more items than old dict")
+        except SkuNotFoundException as ex: # sku not found. changed? try to update, if possible
+
+            name, sku_summary = ZaraScraper.skuSummary(jsonObj)
+            color = self.dict['color']
+            size = self.dict['size']
+
+            if(color in sku_summary): # color still available
+                for pair in sku_summary[color]: 
+                    if(pair[1] == size): # sku_summary[color] contains (sku, size) pairs
+
+                        new_sku = pair[0]
+                        new_product_dict = ZaraScraper.extract(jsonObj, url, new_sku)
+                        break
+
+            else: 
+                raise ex
         
         changed_values = {}
         for key in self.dict.keys(): 
-            
-            if(self.dict[key] != newDict[key]):
+            if(self.dict[key] != new_product_dict[key]):
                 changed_values[key] = self.dict[key]
         
-        self.dict = newDict
+        self.dict = new_product_dict
             
         return [len(changed_values), changed_values]
+
+    def updateSku(self):
+
+        jsonObj = ZaraScraper.getProductList(self.dict['url'])
+
+        # TODO this procedure generates 2 technically superflous accesses of the product
+        # webpage, improve this 
+
+        raise SkuNotFoundException("updating sku of product " + str(self) +
+                              " failed in updateSku()")
     
     def productType(self):
         return "zara"

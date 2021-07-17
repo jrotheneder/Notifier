@@ -32,6 +32,7 @@ class ZaraScraper:
             assert(len(match) == 1)
             jsonStr2 = match[0]  
             jsonObj2 = json.loads(jsonStr2.replace("\n",""))
+            assert("product" in jsonObj2)
 
         except:
             raise SkuNotFoundException("Nothing found in getProductList(). Does \
@@ -84,7 +85,7 @@ class ZaraScraper:
                     return {'sku':sku, 'name':product_name, 'color':color_name, 'url':url,\
                         'price':price, 'size': size_name, 'availability':availability}  
 
-        raise SkuNotFoundException("sku " + sku + " not found in extract() (but > 0 skus found). Correct sku, item available?")
+        raise SkuNotFoundException("sku " + sku + ", " + url + " not found in extract() (but > 0 skus found). Correct sku, item available?")
 
     @staticmethod
     def cleanUrl(url):

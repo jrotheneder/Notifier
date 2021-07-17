@@ -21,11 +21,36 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 def add(update, context):
 
+    product = construct_product(update, context)
+    if(product == None): # nothing found, user has been informed, return
+        return
+        
+    # add to list of tracked items 
+    if('fashion_items' not in context.user_data):
+        context.user_data['fashion_items'] = {}
+        
+    user_items = context.user_data['fashion_items']
+
+    sku = product.dict['sku']
+    
+    if(sku not in user_items):
+        user_items[sku] = product
+
+        msg = "Item added succesfully\n\n" + str(product) + "\n"
+
+        context.bot.send_message(chat_id=update.effective_chat.id, 
+        text=msg)
+        
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, 
+        text= "Item already tracked")
+
+def construct_product(update, context): 
+
     url = context.args[0] # second arg should be size or sku
     product = None
 
-    # determine site, construct Product
-    try:
+    try: # determine site, construct Product
 
         # TODO these checks are problematic if we add zara home; see also
         # restore function
@@ -57,33 +82,13 @@ def add(update, context):
     except (SkuNotFoundException, UnknownCommandError) as ex:
         context.bot.send_message(chat_id=update.effective_chat.id, 
             text=str(ex))
-        return
 
     except Exception as ex:
         context.bot.send_message(chat_id=update.effective_chat.id, 
             text=str(ex))
         raise
-        
-    # add to list of tracked items 
-    if('fashion_items' not in context.user_data):
-        context.user_data['fashion_items'] = {}
-        
-    user_items = context.user_data['fashion_items']
 
-    sku = product.dict['sku']
-    
-    if(sku not in user_items):
-        user_items[sku] = product
-
-        msg = "Item added succesfully\n\n" + str(product) + "\n"
-
-        context.bot.send_message(chat_id=update.effective_chat.id, 
-        text=msg)
-        
-    else:
-        context.bot.send_message(chat_id=update.effective_chat.id, 
-        text= "Item already tracked")
-
+    return product
 
 def remove(update, context):
 
@@ -152,23 +157,38 @@ def command_item_info(update, context): # called via info command
 
     if('zara' in url): 
         zara_item_info_helper(update, context, url)
+        return
 
-    else: 
-        context.bot.send_message(chat_id=update.effective_chat.id, \
-                text= "send a zara url to get item information")
-        raise UnknownCommandError("Unknown command") 
+    else: # assume we got a size to the url
+        try: 
+            product = construct_product(update, context)
+
+            if(product != None): 
+                context.bot.send_message(chat_id=update.effective_chat.id, 
+                    text=str(product))
+                return
+
+        except Exception as ex: 
+            context.bot.send_message(chat_id=update.effective_chat.id, \
+                    text= "Error " + str(ex) + "\n Send a zara url or other url \
+                     + size to get item information")
 
 def default_item_info(update, context): # called as default without command
 
     url = ZaraScraper.cleanUrl(update.message.text)
 
-    if('zara' in url): 
+    if('zara' in url):
         zara_item_info_helper(update, context, url)
 
-    else: 
+    # TODO implement command item info features here (find a way to call
+    # construct_product from here, when context doesn't carry information 
+    # for the default command)
+
+    else:
         context.bot.send_message(chat_id=update.effective_chat.id, \
                 text= "send a zara url to get item information")
-        raise UnknownCommandError("Unknown command") 
+        raise UnknownCommandError("Unknown command")
+
 
         
 def zara_item_info_helper(update, context, url): 
@@ -245,23 +265,34 @@ def quiet_update(user_data):
     if(user_items != None):
         
         msg = ""
-        
-        sku_changed_items = {}
+        sku_changed_items = {} # we use skus as keys in user_item_dict, so if
+                               # those change we have to do housekeeping
         
         for key, item in user_items.items():
             
             n_changes = 0
             try:
+                old_sku = item.dict['sku'] # zara tends to change skus, check for that
                 [n_changes, old_values] = item.update()
+
+                if(old_sku != item.dict['sku']): 
+                    sku_changed_items[key] = item
                 
             except SkuNotFoundException as ex:
-                msg += escape_markdown(str(ex), 2)
+                msg += escape_markdown(str(ex) + "\n", 2)
                 
             if(n_changes > 0):
                 msg1 = escape_markdown(",".join(old_values.keys()),2)
                 msg2 = escape_markdown("changed in\n" + item.update_string(old_values)  + "\n",2)
 
                 msg += "*" + msg1 + "* " + msg2
+
+        # update items with changed skus
+        for key, item in sku_changed_items.items():
+
+            del user_items[key]
+            user_items[item.dict['sku']] = item
+
                 
         if(msg == ""):
             msg = "No changes detected"
