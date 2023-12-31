@@ -188,22 +188,34 @@ def default_item_info(update, context): # called as default without command
         context.bot.send_message(chat_id=update.effective_chat.id, \
                 text= "send a zara url to get item information")
         raise UnknownCommandError("Unknown command")
-
-
         
 def zara_item_info_helper(update, context, url): 
     try:
-        [name, products] = ZaraScraper.skuSummary(ZaraScraper.getProductList(url))
+        [name, skus, skus_sans_sizes, image_url_dict] \
+            = ZaraScraper.skuSummary(ZaraScraper.getProductList(url))
     
         msg = "Product: " + name + "\nUrl: " + url + "\nFound "\
-                + str(len(products)) + " colors:\n\n"
+                + str(len(skus_sans_sizes)) + " colors. Listing SKUs along with"\
+                + " some pictures: \n\n"
+        context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
 
-        for color_name, slist in products.items():
-            msg += (color_name + ":\n" + "\n".join([entry[0]  + " (" + entry[1] + ")" for entry
-                in slist]) + "\n\n") 
+        # send images so user can associate skus with colors
+        for sku_sans_size in skus_sans_sizes: 
 
-        context.bot.send_message(chat_id=update.effective_chat.id, 
-                text=msg)
+            for sku in skus: 
+                if sku_sans_size in sku: 
+                    msg = sku + " (" + ZaraScraper.numToSize[sku.split('-')[-1]] + ")"    
+                    context.bot.send_message(chat_id=update.effective_chat.id,
+                            text=msg)
+
+            img_msg = "Image links: "
+            i = 1 
+            for img_url in image_url_dict[sku_sans_size]:   
+                img_msg += "[[[" + str(i) + "]]](" + img_url + ") "
+                i += 1
+
+            context.bot.send_message(chat_id=update.effective_chat.id,
+                    text=img_msg, parse_mode=ParseMode.MARKDOWN_V2)
 
     except SkuNotFoundException as ex:
         context.bot.send_message(chat_id=update.effective_chat.id, 

@@ -29,31 +29,19 @@ class ZaraProduct(Product):
 
         try: 
             new_product_dict = ZaraScraper.extract(jsonObj, url, sku)
-                
-        except SkuNotFoundException as ex: # sku not found. changed? try to update, if possible
 
-            name, sku_summary = ZaraScraper.skuSummary(jsonObj)
-            color = self.dict['color']
-            size = self.dict['size']
+        except SkuNotFoundException as ex:
+           # in this case we don't raise again, but rather just mark the item as offline 
+            new_product_dict = self.dict.copy()
+            new_product_dict['status'] = 'offline'  
 
-            if(color in sku_summary): # color still available
-                for pair in sku_summary[color]: 
-                    if(pair[1] == size): # sku_summary[color] contains (sku, size) pairs
-
-                        new_sku = pair[0]
-                        new_product_dict = ZaraScraper.extract(jsonObj, url, new_sku)
-                        break
-
-            else: 
-                raise ex
-        
         changed_values = {}
         for key in self.dict.keys(): 
             if(self.dict[key] != new_product_dict[key]):
                 changed_values[key] = self.dict[key]
         
         self.dict = new_product_dict
-            
+        
         return [len(changed_values), changed_values]
 
     def updateSku(self):
