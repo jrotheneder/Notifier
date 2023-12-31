@@ -67,8 +67,6 @@ class ZaraScraper:
         skus_sans_sizes = set(['-'.join(item.split('-')[:-1]) for item in skus]) 
         sku_size_dict = {}
         
-        print(skus) 
-
         for sku_head in skus_sans_sizes: 
             sizes = [ZaraScraper.numToSize[sku.split('-')[-1]] for sku in skus if sku_head in sku]  
             sku_size_dict[sku_head] = sizes  
