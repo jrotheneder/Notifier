@@ -202,12 +202,6 @@ def zara_item_info_helper(update, context, url):
         # send images so user can associate skus with colors
         for sku_sans_size in skus_sans_sizes: 
 
-            for sku in skus: 
-                if sku_sans_size in sku: 
-                    msg = sku + " (" + ZaraScraper.numToSize[sku.split('-')[-1]] + ")"    
-                    context.bot.send_message(chat_id=update.effective_chat.id,
-                            text=msg)
-
             img_msg = "Image links: "
             i = 1 
             for img_url in image_url_dict[sku_sans_size]:   
@@ -216,6 +210,19 @@ def zara_item_info_helper(update, context, url):
 
             context.bot.send_message(chat_id=update.effective_chat.id,
                     text=img_msg, parse_mode=ParseMode.MARKDOWN_V2)
+
+            for sku in skus: 
+                if sku_sans_size in sku: 
+
+                    sizeCode = str(sku.split('-')[-1])
+                    if sizeCode in ZaraScraper.numToSize: 
+                        sizeCode = " (" + ZaraScraper.numToSize[sizeCode] + ")"
+                    else: 
+                        sizeCode = ""
+
+                    msg = sku + sizeCode
+                    context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+
 
     except SkuNotFoundException as ex:
         context.bot.send_message(chat_id=update.effective_chat.id, 

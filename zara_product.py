@@ -33,7 +33,7 @@ class ZaraProduct(Product):
         except SkuNotFoundException as ex:
            # in this case we don't raise again, but rather just mark the item as offline 
             new_product_dict = self.dict.copy()
-            new_product_dict['status'] = 'offline'  
+            new_product_dict['status'] = 'offline (possibly, sku changed?)'  
 
         changed_values = {}
         for key in self.dict.keys(): 

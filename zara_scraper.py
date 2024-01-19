@@ -7,9 +7,9 @@ from exceptions import *
 
 class ZaraScraper:
     
-    numToSize = {'1':'XS', '2': 'S', '3': 'M', '4': 'L', '5': 'XL', '6': 'XXL',
-            '32':'32', '34':'34', '36':'36', '38':'38', '40':'40', '42':'42',
-            '44':'44', '46':'46', '48':'48', '50':'50', '52':'52', '54':'54'}
+    numToSize = {'1':'XS', '2': 'S', '3': 'M', '4': 'L', '5': 'XL', '6': 'XXL'}
+#           '32':'32', '34':'34', '36':'36', '38':'38', '40':'40', '42':'42',
+#           '44':'44', '46':'46', '48':'48', '50':'50', '52':'52', '54':'54'}
     sizeToNum = {'XS':'1', 'S':'2', 'M':'3', 'L':'4', 'XL':'5', 'XXL':'6'}
 
     @staticmethod
@@ -65,11 +65,6 @@ class ZaraScraper:
         # same sizes available.
         skus = [item["sku"] for item in jsonObj]  
         skus_sans_sizes = set(['-'.join(item.split('-')[:-1]) for item in skus]) 
-        sku_size_dict = {}
-        
-        for sku_head in skus_sans_sizes: 
-            sizes = [ZaraScraper.numToSize[sku.split('-')[-1]] for sku in skus if sku_head in sku]  
-            sku_size_dict[sku_head] = sizes  
 
         # the json we scrape does not contain color information, but it contains
         # urls to images, which allows to pass color information to the user
@@ -95,7 +90,11 @@ class ZaraScraper:
         for item in jsonObj: 
             if item["sku"] == sku:  # located item 
                 
-                size_name = ZaraScraper.numToSize[sku.split('-')[-1]]  
+                size_name = sku.split('-')[-1]
+                # convert 1,...6, to XS,...XL
+                if size_name in ZaraScraper.numToSize: 
+                    size_name = ZaraScraper.numToSize[size_name]
+                  
                 offer = item["offers"]  
                 price = offer["price"] + " " + offer["priceCurrency"]    
 
