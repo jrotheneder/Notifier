@@ -7,8 +7,8 @@ tracking items and notifying by telegram messages upon price changes.
 ##### Core routines
 | file | description | 
 | -----------------------------  | ----------------------------- | 
-| notifier_bot.py | Main functions of the bot (e.g. bot-user interaction, querying, adding & removing products, tracking, updating). This is best executed serverside.
-| notifier.ipynb | Jupyter notebook used to start and stop the bot, manage persistence & control access
+| notifier_bot.py | Main functions of the bot (e.g. bot-user interaction, querying, adding & removing products, tracking, updating). 
+| notifier.ipynb | Jupyter notebook used to start and stop the bot, manage persistence & control access. This is to be executed serverside
 
 
 ##### Data extraction / scraping
