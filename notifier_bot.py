@@ -191,7 +191,7 @@ def default_item_info(update, context): # called as default without command
         
 def zara_item_info_helper(update, context, url): 
     try:
-        [name, skus, skus_sans_sizes, image_url_dict] \
+        [name, skus, skus_sans_sizes, image_url_dict, color_dict] \
             = ZaraScraper.skuSummary(ZaraScraper.getProductList(url))
     
         msg = "Product: " + name + "\nUrl: " + url + "\nFound "\
@@ -202,7 +202,12 @@ def zara_item_info_helper(update, context, url):
         # send images so user can associate skus with colors
         for sku_sans_size in skus_sans_sizes: 
 
-            img_msg = "Image: [[[" + "1" + "]]](" + img_url + ")"
+            img_url = image_url_dict[sku_sans_size]  
+            color = color_dict[sku_sans_size]
+            img_msg = "Color: " + color + ", " +\
+                    "Image: [[[" + "1" + "]]](" + img_url + ")"
+#           img_msg = "Color is " + color + "\nImage (may get color wrong): "\
+#               +"[[[" + "1" + "]]](" + img_url + ")"
 
             context.bot.send_message(chat_id=update.effective_chat.id,
                     text=img_msg, parse_mode=ParseMode.MARKDOWN_V2)

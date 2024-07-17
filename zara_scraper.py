@@ -66,19 +66,21 @@ class ZaraScraper:
         skus = [item["sku"] for item in jsonObj]  
         skus_sans_sizes = set(['-'.join(item.split('-')[:-1]) for item in skus]) 
 
-        # the json we scrape does not contain color information, but it contains
-        # urls to images, which allows to pass color information to the user
+        # collect images and colors: 
+        color_dict = {}
         image_url_dict = {}
         for item in jsonObj: 
             sku_sans_size = '-'.join(item["sku"].split('-')[:-1])
+
             image_url_dict[sku_sans_size] = item["image"]  
+            color_dict[sku_sans_size] = item["color"]  
 
 
 #       import pprint 
 #       pp = pprint.PrettyPrinter(depth=4) 
 #       pp.pprint(image_url_dict) 
 
-        return [name, skus, skus_sans_sizes, image_url_dict]  
+        return [name, skus, skus_sans_sizes, image_url_dict, color_dict]  
 
     @staticmethod
     def extract(jsonObj, url, sku): 

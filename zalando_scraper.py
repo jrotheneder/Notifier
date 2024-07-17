@@ -20,16 +20,17 @@ class ZalandoScraper:
         res = requests.get(url, headers=headers)
         soup = bs4.BeautifulSoup(res.content,'html.parser')
 
-        script = soup.find('script', id = 'z-vegas-pdp-props')
+        soup_result = soup.find_all("script", {"type" : "application/ld+json"})
 
-        if(script == None):
-            raise SkuNotFoundException("sku not found in getProductList(). Does the url " + url + " still exist?")
+        try: 
+            assert(len(soup_result) == 1)
+            json_str = soup_result[0].get_text()
+            jsonObj = json.loads(json_str) 
+#           print(json.dumps(jsonObj, indent=3)) 
 
-        jsonStr = script.contents[0].lstrip('<![CDATA').rstrip(']>')
-        jsonObj = json.loads(jsonStr.replace("\n",""))['model']['articleInfo']
-
-        if(jsonObj == None):
-            raise SkuNotFoundException("Nothing found in getProductList(). Does the url " + url + " still exist?")
+        except:
+            raise SkuNotFoundException("Nothing found in getProductList(). Does \
+                    the url " + url + " still exist?")
             
         return jsonObj
     
