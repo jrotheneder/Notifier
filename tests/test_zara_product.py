@@ -5,11 +5,13 @@ from zara_product import ZaraProduct
 
 def test(): 
 
-    url2 = "https://www.zara.com/at/de/pullover-aus-viskosemischgewebe-p00304300.html?v1=277277975&v2=2214634"
+    url2 = "https://www.zara.com/at/de/wide-fit-hose-mit-zierfalten-p00706260.html?v1=370119237&v2=2304180"
     url3 = "https://www.zara.com/at/de/anzugblazer-aus-reiner-wolle-limited-edition-p06364279.html?v1=294688263"
     url4 = "https://www.zara.com/at/de/pullover-mit-streifen-%E2%80%93-limited-edition-p00693325.html?v1=319992467"
 
-    zp = ZaraProduct.fromUrlSku(url3, "309888211-801-50")
+    sku = "370119236-800-42"
+
+    zp = ZaraProduct.fromUrlSku(url2, sku)
     print(zp,"\n")
 
 #   zp = ZaraProduct.fromUrlSize(url4, "43")

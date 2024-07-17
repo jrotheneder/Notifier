@@ -73,6 +73,7 @@ class ZaraScraper:
             sku_sans_size = '-'.join(item["sku"].split('-')[:-1])
             image_url_dict[sku_sans_size] = item["image"]  
 
+
 #       import pprint 
 #       pp = pprint.PrettyPrinter(depth=4) 
 #       pp.pprint(image_url_dict) 
@@ -97,6 +98,7 @@ class ZaraScraper:
                   
                 offer = item["offers"]  
                 price = offer["price"] + " " + offer["priceCurrency"]    
+                color = item["color"]
 
                 if "availability" in offer: # this suggests the item is available
                     availability = offer["availability"].split('/')[-1]     
@@ -104,10 +106,13 @@ class ZaraScraper:
                     availability = "OutOfStock/Unknown"
                 
                 return {'sku':sku, 'name':product_name, 'url':url, 'price':price,\
-                        'size': size_name, 'status': 'online', 'availability':availability}  
+                        'size': size_name, 'status': 'online', 
+                        'availability':availability, 'color':color}  
 
-        raise SkuNotFoundException("sku " + sku + ", " + url + " not found in extract() (but > 0 skus found). Correct sku, item available?")
-
+        raise SkuNotFoundException("sku " + sku + ", " + url \
+            + " not found in extract() (but > 0 skus found). "\
+            + "Correct sku, item available?")
+        
     @staticmethod
     def cleanUrl(url):
         # with html queries attached, the sku received varies (?)
