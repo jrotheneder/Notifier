@@ -1,7 +1,8 @@
 import os,sys,json,requests
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from zara_scraper import *
+# Add the src directory for the zara_scraper module to allow importing 
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from src.zara_scraper import *
 import test_zara_info
 
 

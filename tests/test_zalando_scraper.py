@@ -1,8 +1,9 @@
-import os,sys,json
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
+import os,sys,json,requests
 
-from zalando_scraper import ZalandoScraper
-import requests
+# Add the src directory for the zara_scraper module to allow importing 
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from src.zalando_scraper import *
+
 
 url1 = 'https://www.zalando.at/scotch-and-soda-new-cup-sneaker-low-white-sc312o04t-a11.html'
 url2 = 'https://www.zalando.at/suri-frey-tagesrucksack-black-sue54o00f-q11.html'

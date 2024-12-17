@@ -1,9 +1,9 @@
 from exceptions import * 
-from zara_product import *
-from zalando_product import *
-from uniqlo_product import *
-from cos_product import *
-from hm_product import *
+from src.zara_product import *
+from src.zalando_product import *
+from src.uniqlo_product import *
+from src.cos_product import *
+from src.hm_product import *
 
 from uuid import uuid4
 import json

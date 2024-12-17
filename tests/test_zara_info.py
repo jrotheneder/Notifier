@@ -1,7 +1,7 @@
 import os,sys,json
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from zara_scraper import *
+from src.zara_scraper import *
 import requests
 
 
