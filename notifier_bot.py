@@ -169,6 +169,8 @@ def command_item_info(update, context): # called via info command
                 return
 
         except Exception as ex: 
+
+            logging.info("Error in /info command:\n" + str(ex)  + "\n\n")
             context.bot.send_message(chat_id=update.effective_chat.id, \
                     text= "Error " + str(ex) + "\n Send a zara url or other url \
                      + size to get item information")
@@ -179,10 +181,6 @@ def default_item_info(update, context): # called as default without command
 
     if('zara' in url):
         zara_item_info_helper(update, context, url)
-
-    # TODO implement command item info features here (find a way to call
-    # construct_product from here, when context doesn't carry information 
-    # for the default command)
 
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, \
@@ -246,18 +244,18 @@ def msg(update, context):
                       
 def help(update, context):
     
-    cmds = ["/help", "/info <url>", "/add <url> <size>", 
-            "/add <url> <sku>", "/list", "/remove <sku1> [<sku2> ...]", "/update",
-            "/monitor [<period in seconds>]", "/stop_monitor", "/backup", "/restore <url>",
-            "/msg <message>"]
+    cmds = ["/help", "/info <url>", "/add <url> <size>", "/add <url> <sku>", 
+            "/list", "/remove <sku1> [<sku2> ...]", "/update",
+            "/monitor [<period in seconds>]", "/stop_monitor", "/backup", 
+            "/restore <url>", "/msg <message>"]
     
     helpstrings = ["display usage information",
 "get overview of available variants of item corresponding\
-to given url, including sku (stock keeping unit) numbers",
+to given zara url, including sku (stock keeping unit) numbers",
 "add product with given url and specified size \
 (XS-XXL or numeric depending on product) to the list of tracked items. On Zara, this \
 only works, if the product only comes in a single variant (e.g. \
-one color only). ",
+one color only).",
 "Add product with given url and sku to the list of \
 tracked items. Only needed for Zara products with multiple variants . \
 Skus are of the form 54614904-250-2 or 54614904-250-38 \
@@ -311,7 +309,8 @@ def quiet_update(user_data):
                 
             if(n_changes > 0):
                 msg1 = escape_markdown(",".join(old_values.keys()),2)
-                msg2 = escape_markdown("changed in\n" + item.update_string(old_values)  + "\n",2)
+                msg2 = escape_markdown("changed in\n" + \
+                        item.update_string(old_values)  + "\n",2)
 
                 msg += "*" + msg1 + "* " + msg2
 
@@ -363,8 +362,6 @@ def start_regular_update(update, context):
     else:
         interval = 5*60 # seconds
     
-    # TODO this is duplicated in stop_regular_update, surely 
-    # there is a nicer way
     job_name = "monitor_" + str(context_dict['id'])
     
     if job_name not in [j.name for j in context.job_queue.jobs()]:
