@@ -1,15 +1,18 @@
-from exceptions import * 
-from src.zara_product import *
-from src.zalando_product import *
-from src.uniqlo_product import *
-from src.cos_product import *
-from src.hm_product import *
-
 from uuid import uuid4
 import json
 import os, sys, tempfile
 import urllib.request, urllib.parse
 from datetime import datetime
+
+# Add the 'src' folder to the Python path
+sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
+from exceptions import * 
+from zara_product import *
+from zalando_product import *
+from uniqlo_product import *
+from cos_product import *
+from hm_product import *
+
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, PicklePersistence
 from telegram import InputMediaPhoto, ParseMode

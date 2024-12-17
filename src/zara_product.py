@@ -1,3 +1,5 @@
+import sys,os
+
 from product import Product
 from zara_scraper import ZaraScraper
 
