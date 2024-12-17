@@ -7,7 +7,7 @@ def test():
 
     url2 = "https://www.zara.com/at/de/wide-fit-hose-mit-zierfalten-p00706260.html?v1=370119237&v2=2304180"
     url3 = "https://www.zara.com/at/de/anzugblazer-aus-reiner-wolle-limited-edition-p06364279.html?v1=294688263"
-    url4 = "https://www.zara.com/at/de/pullover-mit-streifen-%E2%80%93-limited-edition-p00693325.html?v1=319992467"
+    url4 = "https://www.zara.com/at/de/t-shirt-aus-strick-mit-abstraktem-muster-p07140301.html?v1=364740786"
 
     sku = "370119236-800-42"
 
