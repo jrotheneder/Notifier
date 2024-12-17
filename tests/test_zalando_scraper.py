@@ -4,10 +4,14 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from zalando_scraper import ZalandoScraper
 import requests
 
-url1 = 'https://www.zalando.at/next-short-sleeve-regular-fit-poloshirt-brown-nx322q0uj-o11.html'
+url1 = 'https://www.zalando.at/scotch-and-soda-new-cup-sneaker-low-white-sc312o04t-a11.html'
+url2 = 'https://www.zalando.at/suri-frey-tagesrucksack-black-sue54o00f-q11.html'
+url3 = 'https://www.zalando.at/reebok-classic-hexalite-legacy-15-unisex-sneaker-low-alabasterfootwear-whitechalk-re015o0kl-a12.html'
+url4 = 'https://www.zalando.at/new-balance-u327c-unisex-sneaker-low-olivine-ne215o0an-m12.html'
 
-url = url1
+url = url4
 
-print(json.dumps(ZalandoScraper.getProductList(url), indent=4,
-    sort_keys=True))
-print(json.dumps(ZalandoScraper.getProductFromSize(url, '30x32'), indent=4, sort_keys=True))
+jsonObj = ZalandoScraper.getProductList(url)
+print(json.dumps(jsonObj, indent=4, sort_keys=True))
+
+# print(json.dumps(ZalandoScraper.getProductFromSize(url, '30x32'), indent=4, sort_keys=True))

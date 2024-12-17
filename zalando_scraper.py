@@ -1,6 +1,5 @@
-import requests
-import bs4
-import json
+import re, requests, json, bs4
+from pprint import pprint
 
 from exceptions import SkuNotFoundException
 
@@ -18,6 +17,21 @@ class ZalandoScraper:
                 "AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9")}
 
         res = requests.get(url, headers=headers)
+
+        # print res.content to file for inspection: 
+        with open('zalando.html', 'w') as f:
+            f.write(res.text)
+
+        # the info we need is curreently contained between the parentheses
+        # of runtime['hydratePartial'](...);. ... ends with }} which we 
+        # match as well for more specificity 
+        match = re.search(r"runtime\['hydratePartial'\]\((.*?)}}\);", res.text)
+        if match:
+            json_str = match.group(1) + "}}"
+            print(json_str)
+#             json_obj = json.loads(json_str)
+#             print(json.dumps(json_obj, indent=2))
+
         soup = bs4.BeautifulSoup(res.content,'html.parser')
 
         soup_result = soup.find_all("script", {"type" : "application/ld+json"})
