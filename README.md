@@ -1,14 +1,22 @@
-# Notifier
-A telegram-python bot used for scraping data from the websites of selected
+## Notifier - Price & Availability Tracking Bot 
+
+####   Description 
+A bot used for scraping data from the websites of selected
 fashion retailers, tracking items and notifying by telegram messages upon 
 changes in price or availability.
+
+**Features**: 
+* Per-user tracking of changes in price and availability status of selected items.
+* Tracking of multiple variants (sizes, colors) of an item.
+* Notification by telegram messages. 
+* Currently supported (12/24): Zara & Uniqlo. 
 
 #### Overview of the code
 
 ##### Core routines
 | file | description | 
 | -----------------------------  | ----------------------------- | 
-| `notifier_bot.py` | Main functions of the bot (e.g. bot-user interaction, querying, adding & removing products, tracking, updating). 
+| `notifier_bot.py` | Main functions of the bot (bot-user interaction, querying, adding & removing products, tracking, updating). 
 | `notifier.ipynb` | Jupyter notebook used to start and stop the bot, manage persistence & control access. To be executed serverside
 
 
@@ -24,12 +32,12 @@ changes in price or availability.
 ##### Data Representation
 | file| description | 
 | -----------------------------  | ----------------------------- | 
-| `product.py`         | Abstract base class for products from various retailers
-| `zara_product.py`    | Class that encapsulates data about a product tracked from Zara
-| `zalando_product.py` | Class that encapsulates data about a product tracked from Zalando 
-| `hm_product.py`      | Class that encapsulates data about a product tracked from H&M
-| `cos_product.py`     | Class that encapsulates data about a product tracked from COS
-| `uniqlo_product.py`  | Class that encapsulates data about a product tracked from Uniqlo
+| `src/product.py`         | Abstract base class for products from various retailers
+| `src/zara_product.py`    | Class that encapsulates data about a product tracked from Zara
+| `src/uniqlo_product.py`  | Class that encapsulates data about a product tracked from Uniqlo
+| `src/zalando_product.py` | Class that encapsulates data about a product tracked from Zalando 
+| `src/hm_product.py`      | Class that encapsulates data about a product tracked from H&M
+| `src/cos_product.py`     | Class that encapsulates data about a product tracked from COS
 
 
 

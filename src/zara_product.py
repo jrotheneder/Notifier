@@ -1,9 +1,9 @@
 import sys,os
 
-from product import Product
-from zara_scraper import ZaraScraper
+from .product import Product
+from .zara_scraper import ZaraScraper
 
-from exceptions import *
+from .exceptions import *
 
 class ZaraProduct(Product):
         

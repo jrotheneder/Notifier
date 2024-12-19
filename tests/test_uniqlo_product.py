@@ -1,15 +1,14 @@
-import os,sys,json
+import os,sys,json,requests
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from uniqlo_product import UniqloProduct
-import requests
+from src.uniqlo_product import UniqloProduct
 
-url1 = 'https://www.uniqlo.com/eu/en_AT/product/men-premium-lambswool-v-neck-cardigan-429069COL08SMA002000.html'
-url2 = 'https://www.uniqlo.com/eu/en_AT/product/men-100pct-extra-fine-merino-wool-turtleneck-jumper-429067COL37SMA002000.html'
-url3 = 'https://www.uniqlo.com/eu/en_AT/product/men-comfort-blazer-jacket-425422COL08SMA002000.html'
-url4 = 'https://www.uniqlo.com/eu/en_AT/product/men-100pct-extra-fine-merino-wool-turtleneck-jumper-429067COL16SMA007000.html'
+url1 = 'https://www.uniqlo.com/eu-at/en/products/E457622-000/00?colorDisplayCode=09&sizeDisplayCode=006'
+url2 = 'https://www.uniqlo.com/eu-at/en/products/E450543-000/01?colorDisplayCode=26&sizeDisplayCode=004'
 
-up = UniqloProduct.fromUrlSize(url2, 'M') 
+url = url2
+
+up = UniqloProduct.fromUrl(url) 
 
 print(up) 
 up.dict['price'] = 'over 9000'  

@@ -1,10 +1,9 @@
 import os,sys,json,requests
 
-# Add the src directory for the zara_scraper module to allow importing 
+# Add the src directory for the scraper module to allow importing 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from src.zara_scraper import *
 import test_zara_info
-
 
 
 url1 = "https://www.zara.com/at/de/pullover-mit-geripptem-stehkragen-und-reissverschluss-p03284404.html?v1=410580976&v2=2432265"

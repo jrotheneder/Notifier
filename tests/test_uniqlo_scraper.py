@@ -1,15 +1,16 @@
-import os,sys,json
+import os,sys,json,requests
+
+# Add the src directory for the scraper module to allow importing 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from src.uniqlo_scraper import *
 
-from uniqlo_scraper import UniqloScraper
-import requests
+url1 = 'https://www.uniqlo.com/eu-at/en/products/E457622-000/00?colorDisplayCode=09&sizeDisplayCode=006'
+url2 = 'https://www.uniqlo.com/eu-at/en/products/E450543-000/01?colorDisplayCode=26&sizeDisplayCode=004'
 
-url1 = 'https://www.uniqlo.com/eu/en_AT/product/men-premium-lambswool-v-neck-cardigan-429069COL08SMA002000.html'
-url2 = 'https://www.uniqlo.com/eu/en_AT/product/men-100pct-extra-fine-merino-wool-turtleneck-jumper-429067COL37SMA002000.html'
-url3 = 'https://www.uniqlo.com/eu/en_AT/product/men-comfort-blazer-jacket-425422COL08SMA002000.html'
-url4 = 'https://www.uniqlo.com/eu/en_AT/product/men-colour-socks-423540COL67MSC027000.html'
+url = url2
 
-print(json.dumps(UniqloScraper.getProductList(url3), indent=4,
-    sort_keys=True))
+jsonObj = UniqloScraper.getProductList(url)
+# print(jsonObj)
+print(json.dumps(jsonObj, indent=4, sort_keys=True))
 
-print(UniqloScraper.getProductFromSize(url2, 'M'))
+print(UniqloScraper.getProductJson(url))

@@ -1,6 +1,6 @@
-from product import Product
-from uniqlo_scraper import UniqloScraper
-from exceptions import *
+from .product import Product
+from .uniqlo_scraper import UniqloScraper
+from .exceptions import *
 
 class UniqloProduct(Product):
         
@@ -8,16 +8,16 @@ class UniqloProduct(Product):
         super().__init__(productDict)
         
     @classmethod
-    def fromUrlSize(cls, url, size):
+    def fromUrl(cls, url):
         
-        return cls(UniqloScraper.getProductFromSize(url, size))   
+        return cls(UniqloScraper.getProductJson(url))   
         
     def update(self):
 
         url = self.dict['url']
         size = self.dict['size']
         
-        newDict = UniqloScraper.getProductFromSize(url, size)    
+        newDict = UniqloScraper.getProductJson(url)    
                 
 #       if(len(self.dict) != len(newDict)):
 #           raise RuntimeError("Error in update(): new dict has more items than old dict")

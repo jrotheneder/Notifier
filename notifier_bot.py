@@ -69,8 +69,7 @@ def construct_product(update, context):
                 product = ZaraProduct.fromUrlSku(url, item_identifier)
 
         elif('uniqlo' in url):
-            item_identifier = context.args[1]
-            product = UniqloProduct.fromUrlSize(url, item_identifier) 
+            product = UniqloProduct.fromUrl(url) 
 
         elif('cosstores' in url): 
             product = CosProduct.fromUrl(url) 

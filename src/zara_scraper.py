@@ -3,7 +3,7 @@ import bs4
 import json
 import re
 
-from exceptions import *
+from .exceptions import *
 
 class ZaraScraper:
     
