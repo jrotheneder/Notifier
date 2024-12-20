@@ -1,6 +1,6 @@
-from product import Product
-from zalando_scraper import ZalandoScraper
-from exceptions import *
+from .product import Product
+from .zalando_scraper import ZalandoScraper
+from .exceptions import *
 
 class ZalandoProduct(Product):
         

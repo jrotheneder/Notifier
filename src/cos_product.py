@@ -1,6 +1,6 @@
-from product import Product
-from cos_scraper import CosScraper
-from exceptions import *
+from .product import Product
+from .cos_scraper import CosScraper
+from .exceptions import *
 
 class CosProduct(Product):
         

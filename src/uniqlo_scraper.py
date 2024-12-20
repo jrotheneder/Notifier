@@ -40,7 +40,7 @@ class UniqloScraper:
             to the given url (mostly size variations on Uniqlo) """
 
         # Path to your WebDriver 
-        webdriver_path = "/home/johannes/ProgrammingProjects/Notifier/geckodriver"
+        webdriver_path = "/home/ubuntu/Notifier/geckodriver"
 
         # Set up Firefox options
         options = Options()

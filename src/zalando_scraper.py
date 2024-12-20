@@ -1,7 +1,7 @@
 import re, requests, json, bs4
 from pprint import pprint
 
-from exceptions import SkuNotFoundException
+from .exceptions import SkuNotFoundException
 
 class ZalandoScraper:
     

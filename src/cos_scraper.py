@@ -3,7 +3,7 @@ import bs4
 import json
 import re
 
-from exceptions import SkuNotFoundException
+from .exceptions import SkuNotFoundException
 from jsoncomment import JsonComment # https://stackoverflow.com/questions/23705304/can-json-loads-ignore-trailing-commas
 
 class CosScraper:

@@ -1,6 +1,6 @@
-from product import Product
-from hm_scraper import HmScraper
-from exceptions import *
+from .product import Product
+from .hm_scraper import HmScraper
+from .exceptions import *
 
 class HmProduct(Product):
         
