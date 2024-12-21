@@ -1,11 +1,10 @@
-import requests, bs4, json, re, os
+import requests, bs4, json, re, os, time
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-# import time
 
 from .exceptions import *
 
@@ -39,7 +38,10 @@ class UniqloScraper:
             to the given url (mostly size variations on Uniqlo) """
 
         # Path to WebDriver 
-        webdriver_path = "/home/ubuntu/Notifier/chromedriver"
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(script_dir)
+        webdriver_path = os.path.join(parent_dir, "chromedriver")
+#         webdriver_path = "/home/ubuntu/Notifier/chromedriver"
 
         # Set up options
         options = webdriver.ChromeOptions()
@@ -54,11 +56,16 @@ class UniqloScraper:
             driver.get(url)
 
             # Wait for the <script type="application/ld+json"> element to load
-#             time.sleep(2)  
-            WebDriverWait(driver, 3).until(
-                EC.presence_of_element_located((By.XPATH, 
-                    "//script[@type='application/ld+json']"))
-            )
+            # the first time the json is loaded, it sometimes contains wrong 
+            # data. We wait for a fixed amount of time, hoping that after that, 
+            # the correct data is loaded. 
+            # NOTE: if the availability of Uniqlo items is frequently wrong, 
+            # increasing the wait time here might help.
+            time.sleep(3) 
+#             WebDriverWait(driver, 3).until(
+#                 EC.presence_of_element_located((By.XPATH, 
+#                     "//script[@type='application/ld+json']"))
+#             )
 
             # Get the fully loaded HTML
             page_source = driver.page_source
