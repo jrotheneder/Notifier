@@ -15,5 +15,3 @@ up.dict['price'] = 'over 9000'
 
 print(up) 
 print(up.update())
-
-print(up.productType())

@@ -16,27 +16,24 @@ class UniqloProduct(Product):
 
         url = self.dict['url']
         size = self.dict['size']
-        
-        newDict = UniqloScraper.getProductJson(url)    
-                
-#       if(len(self.dict) != len(newDict)):
-#           raise RuntimeError("Error in update(): new dict has more items than old dict")
-        
-        old_values = {}
+
+        try: 
+            new_dict = UniqloScraper.getProductJson(url)    
+
+        except SkuNotFoundException as ex:
+           # in this case we don't raise again, but rather just mark the item as offline 
+            new_dict = self.dict.copy()
+            new_dict['status'] = 'offline/unreachable'  
+
+        changed_values = {}
         for key in self.dict.keys(): 
-            
-            if(self.dict[key] != newDict[key]):
-
-                # don't notify of a change if stock is still high
-                if(key == 'stock' and int(newDict[key]) > Product.stock_msg_threshold):
-                    continue 
-
-                old_values[key] = self.dict[key]
+            if(self.dict[key] != new_dict[key]):
+                changed_values[key] = self.dict[key]
         
-        self.dict = newDict
-            
-        return [len(old_values), old_values]
-
+        self.dict = new_dict
+        
+        return [len(changed_values), changed_values]
+        
     def productType(self):
         return "uniqlo"
 

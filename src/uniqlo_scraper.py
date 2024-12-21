@@ -1,12 +1,11 @@
-import requests, bs4, json, re
+import requests, bs4, json, re, os
 
 from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import time
+# import time
 
 from .exceptions import *
 
@@ -35,20 +34,20 @@ class UniqloScraper:
     }
 
     @staticmethod
-    def getProductList(url):
+    def scrapeProductData(url):
         """ Obtain a json containing data on product variants corresponding
             to the given url (mostly size variations on Uniqlo) """
 
-        # Path to your WebDriver 
-        webdriver_path = "/home/ubuntu/Notifier/geckodriver"
+        # Path to WebDriver 
+        webdriver_path = "/home/ubuntu/Notifier/chromedriver"
 
-        # Set up Firefox options
-        options = Options()
-        options.add_argument("--headless")  # Enable headless mode
+        # Set up options
+        options = webdriver.ChromeOptions()
+        options.add_argument("--headless")  # Enable headless (no gui) mode
 
         # Initialize WebDriver with headless mode
         service = Service(webdriver_path)
-        driver = webdriver.Firefox(service=service, options=options)
+        driver = webdriver.Chrome(service=service, options=options)
 
         try:
             # Open a web page
@@ -57,7 +56,8 @@ class UniqloScraper:
             # Wait for the <script type="application/ld+json"> element to load
 #             time.sleep(2)  
             WebDriverWait(driver, 3).until(
-                EC.presence_of_element_located((By.XPATH, "//script[@type='application/ld+json']"))
+                EC.presence_of_element_located((By.XPATH, 
+                    "//script[@type='application/ld+json']"))
             )
 
             # Get the fully loaded HTML
@@ -76,8 +76,13 @@ class UniqloScraper:
             raise SkuNotFoundException(f"Exception {ex} occured in getProductList(). \n" \
                     f"Does the url {url} still exist?")
         finally:
-            # Close the browser
+            # Close and quit the browser
+            driver.close()
             driver.quit()
+
+            # on the server, chrome instances sometimes remain after calling driver.quit()
+            os.system('killall chrome') 
+
 
 
     @staticmethod
@@ -109,7 +114,7 @@ class UniqloScraper:
         """ Given a json containing information on the item at a supplied url,
         returns a flattened and simplified json containing essential info about the variant with a specified size"""
         
-        jsonObj = UniqloScraper.getProductList(url)
+        jsonObj = UniqloScraper.scrapeProductData(url)
 #         print(jsonObj)
 
         product_dict = jsonObj["@graph"][1]
@@ -120,18 +125,23 @@ class UniqloScraper:
 
         price = str(offer_dict['price']) + ' ' + offer_dict['priceCurrency']
 
+        availability = offer_dict['availability']
         colorCode = UniqloScraper.urlToColorCode(url) 
+        sizeCode = UniqloScraper.urlToSizeCode(url)
+
+        # as of late, uniqlo supplies no sku. We rely on skus to prevent 
+        # duplicate additions, so we roll our own 
+        mpn = product_dict['mpn']
+        sku = mpn + "-" + colorCode + "-" + sizeCode
+
+        # attempt translating (some) uniqlo color and size codes to 
+        # a more readable format
+        if sizeCode in UniqloScraper.sizeCodes.keys():
+            sizeCode += " ("+ UniqloScraper.sizeCodes[sizeCode] + "?)"
         if colorCode in UniqloScraper.colorCodes.keys():
             colorCode += " ("+ UniqloScraper.colorCodes[colorCode] + "?)"
 
-        sizeCode = UniqloScraper.urlToSizeCode(url)
-        if sizeCode in UniqloScraper.sizeCodes.keys():
-            sizeCode += " ("+ UniqloScraper.sizeCodes[sizeCode] + "?)"
-
-        mpn = product_dict['mpn']
-        availability = offer_dict['availability']
-
-        productJson = {'mpn':mpn, 'url':url, 'price':price, 
+        productJson = {'sku':sku, 'url':url, 'price':price, 
                 'size': sizeCode, 'availability': availability, 'colorCode': colorCode }
         
         return productJson

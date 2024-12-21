@@ -1,31 +1,40 @@
 from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.service import Service
 import time
 
-# Path to your WebDriver 
-webdriver_path = "/home/johannes/ProgrammingProjects/Notifier/geckodriver"
+url1 = "https://example.com/"
+url2 = "https://www.uniqlo.com/eu-at/en/products/E457622-000/00?colorDisplayCode=06&sizeDisplayCode=004"
 
-# Set up Firefox options
-options = Options()
-options.add_argument("--headless")  # Enable headless mode
+url = url2
+
+# Path to your WebDriver 
+webdriver_path = "/home/ubuntu/Notifier/chromedriver"
+
+options = webdriver.ChromeOptions()
+options.add_argument("--headless")  # Run in headless mode (no GUI)
 
 # Initialize WebDriver with headless mode
 service = Service(webdriver_path)
-driver = webdriver.Firefox(service=service, options=options)
+
+# Initialize ChromeDriver with service and options
+driver = webdriver.Chrome(service=service, options=options)
 
 try:
-    # Open a web page
-    driver.get("https://www.uniqlo.com/eu-at/en/products/E457622-000/00?colorDisplayCode=09&sizeDisplayCode=006")
+    print("Point 1\n", flush=True) 
 
-    # Wait for JavaScript to load (can be replaced with WebDriverWait for specific elements)
-    time.sleep(5)  # Replace with explicit waits for better performance
+    # Open a web page
+    driver.get(url)
+
+    print("Point 2\n", flush=True) 
+    time.sleep(1)  # Replace with explicit waits for better performance
 
     # Get the fully loaded HTML
     page_source = driver.page_source
     print(page_source)
+ 
 
 finally:
     # Close the browser
+    driver.close()
     driver.quit()
 

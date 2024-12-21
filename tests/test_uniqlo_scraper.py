@@ -9,7 +9,7 @@ url2 = 'https://www.uniqlo.com/eu-at/en/products/E450543-000/01?colorDisplayCode
 
 url = url2
 
-jsonObj = UniqloScraper.getProductList(url)
+jsonObj = UniqloScraper.scrapeProductData(url)
 # print(jsonObj)
 print(json.dumps(jsonObj, indent=4, sort_keys=True))
 
