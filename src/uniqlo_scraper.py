@@ -37,7 +37,7 @@ class UniqloScraper:
         """ Obtain a json containing data on product variants corresponding
             to the given url (mostly size variations on Uniqlo) """
 
-        # Path to WebDriver 
+        # Path to WebDriver (assumed to be located in the parent dir of this file)
         script_dir = os.path.dirname(os.path.abspath(__file__))
         parent_dir = os.path.dirname(script_dir)
         webdriver_path = os.path.join(parent_dir, "chromedriver")
@@ -61,7 +61,7 @@ class UniqloScraper:
             # the correct data is loaded. 
             # NOTE: if the availability of Uniqlo items is frequently wrong, 
             # increasing the wait time here might help.
-            time.sleep(3) 
+            time.sleep(15) 
 #             WebDriverWait(driver, 3).until(
 #                 EC.presence_of_element_located((By.XPATH, 
 #                     "//script[@type='application/ld+json']"))
@@ -119,7 +119,8 @@ class UniqloScraper:
     @staticmethod
     def getProductJson(url):
         """ Given a json containing information on the item at a supplied url,
-        returns a flattened and simplified json containing essential info about the variant with a specified size"""
+        returns a flattened and simplified json containing essential info about
+        the variant with a specified size"""
         
         jsonObj = UniqloScraper.scrapeProductData(url)
 #         print(jsonObj)

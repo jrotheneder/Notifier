@@ -139,6 +139,7 @@ Routes                  2.4.1
 sabyenc3                4.0.1
 screen-resolution-extra 0.0.0
 SecretStorage           2.3.1
+selenium                4.27.1
 Send2Trash              1.5.0
 setproctitle            1.1.10
 setuptools              45.2.0
@@ -171,3 +172,4 @@ wheel                   0.34.2
 widgetsnbextension      3.5.1
 xkit                    0.0.0
 zeroconf                0.24.4
+
