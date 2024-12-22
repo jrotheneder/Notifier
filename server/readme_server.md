@@ -9,3 +9,7 @@ Instructions for running code on server via jupyter on desktop:
 1. Run launch_jupyter.sh on server (from project root). This displays a url containing a token.
 1. Run open_tunnel.sh on the local machine
 3. Paste the url from step 1. into a browser on the local machine, replacing 8086 by 8081
+
+###### Misc Notes
+To get selenium running on an arm64 based architecture, one can proceed as in 
+[this answer](https://stackoverflow.com/a/78946315/5775322) on stackoverflow.

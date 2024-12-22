@@ -61,7 +61,7 @@ class UniqloScraper:
             # the correct data is loaded. 
             # NOTE: if the availability of Uniqlo items is frequently wrong, 
             # increasing the wait time here might help.
-            time.sleep(15) 
+            time.sleep(5) 
 #             WebDriverWait(driver, 3).until(
 #                 EC.presence_of_element_located((By.XPATH, 
 #                     "//script[@type='application/ld+json']"))
@@ -139,6 +139,7 @@ class UniqloScraper:
 
         # as of late, uniqlo supplies no sku. We rely on skus to prevent 
         # duplicate additions, so we roll our own 
+        name = product_dict['name']
         mpn = product_dict['mpn']
         sku = mpn + "-" + colorCode + "-" + sizeCode
 
@@ -149,7 +150,7 @@ class UniqloScraper:
         if colorCode in UniqloScraper.colorCodes.keys():
             colorCode += " ("+ UniqloScraper.colorCodes[colorCode] + "?)"
 
-        productJson = {'sku':sku, 'url':url, 'price':price, 
+        productJson = {'sku':sku, 'url':url, 'price':price, 'name': name,
                 'size': sizeCode, 'availability': availability, 'colorCode': colorCode }
         
         return productJson

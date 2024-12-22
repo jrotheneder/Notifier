@@ -97,7 +97,7 @@ class ZaraScraper:
         Given jsonObj and sku, extract relevant information about the item with
         the given sku
         """
-        product_name = jsonObj[0]['name']
+        name = jsonObj[0]['name']
 
         for item in jsonObj: 
             if item["sku"] == sku:  # located item 
@@ -118,7 +118,7 @@ class ZaraScraper:
                 else: 
                     availability = "OutOfStock/Unknown"
                 
-                return {'sku' : sku, 'name' : product_name, 'url' : url, \
+                return {'sku' : sku, 'name' : name, 'url' : url, \
                         'price' : price, 'size' : size_name, 'status' : 'online', \
                         'availability' : availability, 'color' : color}  
 

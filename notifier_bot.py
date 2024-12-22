@@ -3,6 +3,7 @@ import json
 import os, sys, tempfile
 import urllib.request, urllib.parse
 from datetime import datetime
+import logging
 
 # Add the 'src' folder to the Python path
 #sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
@@ -14,17 +15,62 @@ from src.cos_product import *
 from src.hm_product import *
 
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, PicklePersistence
-from telegram import InputMediaPhoto, ParseMode
-from telegram.utils.helpers import escape_markdown
+from telegram.ext import Application, Updater, CommandHandler, MessageHandler
+from telegram.ext import filters, PicklePersistence, ContextTypes, CallbackContext
+from telegram import Update, InputMediaPhoto
+from telegram.helpers import escape_markdown
 
-import logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                      level=logging.INFO, filename = "notifier.log", filemode = 'w')
 
-def add(update, context):
+# raise httpx logs to warning level to get a cleaner log
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
-    product = construct_product(update, context)
+# For testing purposes only 
+async def msg(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
+    """Echo the user message."""
+    await update.message.reply_text(update.message.text)
+
+async def help(update, context):
+    
+    cmds = ["/help", "/info <url>", "/add <url> [<size>]", "/add <url> [<sku>]", 
+            "/list", "/remove <sku1> [<sku2> ...]", "/update",
+            "/monitor [<period in seconds>]", "/stop_monitor", "/backup", 
+            "/restore <url>", "send a .json file structured as the output of /backup"]
+    
+    helpstrings = ["display usage information",
+"get overview of available variants of item corresponding\
+to given zara url, including sku (stock keeping unit) numbers",
+"add product with given url and specified size \
+(XS-XXL or numeric depending on product) to the list of tracked items. On Zara, this \
+only works, if the product only comes in a single variant (e.g. \
+one color only). For uniqlo, the size can be omitted.",
+"Add product with given url and sku to the list of \
+tracked items. This is needed for Zara products with multiple variants. \
+Skus are of the form 54614904-250-2 or 54614904-250-38 \
+where the last number determines size and the number in the middle \
+determines product variant. They can be queried with /info",
+"list currently tracked products",
+"Remove product with given sku from tracking",
+"Check for changes in tracked products (experimental!)",
+"Start automatic monitoring at intervals of period",
+"Stop automatic monitoring",
+"Generate a .json file containing information about currently tracked items",
+"Restore from a backup in the form of a .json file, which must be downloadable \
+at the supplied url (use e.g. pastebin.com and raw urls for this)",
+"Restore from a backup json file"]
+    
+    msg = "Below are listed the available commands, their arguments (which are \
+written in between < and >) and optional arguments (in brackets). E.g. the command \
+/info <url> can be executed as /info www.zara.com/someproductpage.html\n\n" + \
+"\n\n".join([cmd + "  :  " + helpstr for cmd, helpstr in zip(cmds, helpstrings)])
+    
+    await update.message.reply_text(msg)
+                      
+async def add(update, context):
+
+    print("Entered add")
+    product = await construct_product(update, context)
     if(product == None): # nothing found, user has been informed, return
         return
         
@@ -41,21 +87,21 @@ def add(update, context):
 
         msg = "Item added succesfully\n\n" + str(product) + "\n"
 
-        context.bot.send_message(chat_id=update.effective_chat.id, 
+        await context.bot.send_message(chat_id=update.effective_chat.id, 
         text=msg)
         
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, 
+        await context.bot.send_message(chat_id=update.effective_chat.id, 
         text= "Item already tracked")
 
-def construct_product(update, context): 
+async def construct_product(update, context): 
 
     url = context.args[0] # second arg should be size or sku
     product = None
 
-    try: # determine site, construct Product
+    try: # determine site, construct Product 
 
-        # TODO these checks are problematic if we add zara home; see also
+        # NOTE these checks are problematic if we add zara home; see also
         # restore function
         if('zalando' in url):
             item_identifier = context.args[1]
@@ -63,7 +109,7 @@ def construct_product(update, context):
 
         elif('zara' in url):
             item_identifier = context.args[1]
-            if(len(item_identifier) < 5): # size
+            if(len(item_identifier) <= 5): # size
                 product = ZaraProduct.fromUrlSize(url, item_identifier)
             else:
                 product = ZaraProduct.fromUrlSku(url, item_identifier)
@@ -78,21 +124,21 @@ def construct_product(update, context):
             product = HmProduct.fromUrl(url) 
 
         else:
-            raise UnknownCommandError("neither zalando, zara nor uniqlo url \
-            found in add()") 
+            raise UnknownCommandError("Neither zalando, zara nor uniqlo url \
+            found in add(). Correct url and command?") 
 
     except (SkuNotFoundException, UnknownCommandError) as ex:
-        context.bot.send_message(chat_id=update.effective_chat.id, 
-            text=str(ex))
+        logging.info("Error in /add command:\n" + str(ex)  + "\n\n")
+        await update.message.reply_text(str(ex))
 
     except Exception as ex:
-        context.bot.send_message(chat_id=update.effective_chat.id, 
-            text=str(ex))
+        logging.info("Error in /add command:\n" + str(ex)  + "\n\n")
+        await update.message.reply_text("Error: " + str(ex))
         raise
 
     return product
 
-def remove(update, context):
+async def remove(update, context):
 
     skus = context.args
     
@@ -103,22 +149,22 @@ def remove(update, context):
         except KeyError:
             msg = "Item " + sku + " was not tracked or sku not found"
         
-        context.bot.send_message(chat_id=update.effective_chat.id, 
-                                 text=msg)
+        await update.message.reply_text(msg)
     
-def empty(update, context):
+async def empty(update, context):
     
     try:
         del context.user_data['fashion_items']
-        msg = "Deleted all items succesfully"
+        msg = "Deleted all items successfully."
     except KeyError:
-        msg = "Nothing to delete"
+        msg = "Nothing to delete."
         
-    context.bot.send_message(chat_id=update.effective_chat.id, 
-                             text=msg)
+    await update.message.reply_text(msg)
    
+def split_messages(msg, size=4096):
+    return [msg[i : i+4096] for i in range(0, len(msg), 4096)]
             
-def list_tracked_items(update, context):
+async def list_tracked_items(update, context):
     
     user_items = context.user_data.get('fashion_items')
     messages = []
@@ -140,9 +186,13 @@ def list_tracked_items(update, context):
 
         for groupname, group in groups.items(): 
             
+#             messages.append("\n\n*" + groupname.capitalize() + ":* " + str(len(group))\
+#                     + " item\(s\)\n\n" + "\n\n".join([escape_markdown(str(item), 2) for \
+#                     item in group]) + "\n\n") 
             messages.append("\n\n*" + groupname.capitalize() + ":* " + str(len(group))\
-                    + " item\(s\)\n\n" + "\n\n".join([escape_markdown(str(item), 2) for \
-                    item in group]) + "\n\n") 
+                + " item\\(s\\)\n\n" + "\n\n".join([escape_markdown(str(item), 2) \
+                for item in group]) + "\n\n") 
+
     else:
         messages.append("Currently, no items are tracked")
         
@@ -150,15 +200,15 @@ def list_tracked_items(update, context):
     for msg in messages: 
         splits = split_messages(msg)
         for m in splits: 
-            context.bot.send_message(chat_id=update.effective_chat.id, 
-                                 text=m, parse_mode=ParseMode.MARKDOWN_V2)
+            await context.bot.send_message(chat_id=update.effective_chat.id, 
+                                 text=m, parse_mode="MarkdownV2")
     
-def command_item_info(update, context): # called via info command
+async def command_item_info(update, context): # called via info command
         
     url = ZaraScraper.cleanUrl(context.args[0])
 
     if('zara' in url): 
-        zara_item_info_helper(update, context, url)
+        await zara_item_info_helper(update, context, url)
         return
 
     else: # assume we got a size to the url
@@ -166,18 +216,17 @@ def command_item_info(update, context): # called via info command
             product = construct_product(update, context)
 
             if(product != None): 
-                context.bot.send_message(chat_id=update.effective_chat.id, 
-                    text=str(product))
+                await update.message.reply_text(str(product))
                 return
 
         except Exception as ex: 
 
             logging.info("Error in /info command:\n" + str(ex)  + "\n\n")
-            context.bot.send_message(chat_id=update.effective_chat.id, \
-                    text= "Error " + str(ex) + "\n Send a zara url or other url \
-                     + size to get item information")
+            msg = "Error " + str(ex) + "\n Send a zara url or other url \
+                     + size to get item information"
+            await update.message.reply_text(msg)
 
-def default_item_info(update, context): # called as default without command
+async def default_item_info(update, context): # called as default without command
 
     url = ZaraScraper.cleanUrl(update.message.text)
 
@@ -185,11 +234,10 @@ def default_item_info(update, context): # called as default without command
         zara_item_info_helper(update, context, url)
 
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, \
-                text= "send a zara url to get item information")
+        await update.message.reply_text("Send a zara url to get item information")
         raise UnknownCommandError("Unknown command")
         
-def zara_item_info_helper(update, context, url): 
+async def zara_item_info_helper(update, context, url): 
     """
     Helper function for info command. Given a zara url, it extracts
     summary information about the available variants of the item
@@ -204,7 +252,7 @@ def zara_item_info_helper(update, context, url):
                 + str(len(set(size_dict.values()))) + " sizes\n\n" \
                 + "Listing SKUs along with some pictures: \n\n"
 
-        context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
+        await update.message.reply_text(msg)
 
         # send images so user can associate skus with colors
         for sku_sans_size in skus_sans_sizes: 
@@ -214,78 +262,20 @@ def zara_item_info_helper(update, context, url):
             img_msg = "Color: " + color + ", " +\
                     "Image: [[[" + "1" + "]]](" + img_url + ")"
 
-            context.bot.send_message(chat_id=update.effective_chat.id,
-                    text=img_msg, parse_mode=ParseMode.MARKDOWN_V2)
+            await update.message.reply_text(img_msg, parse_mode="MarkdownV2")
 
             for sku in skus: 
                 if sku_sans_size in sku: 
 
-                    # NOTE: as of late, sizes are explicitly given in the json
-                    # so we can just extract the size from the sku
-#                     sizeCode = str(sku.split('-')[-1])
-#                     if sizeCode in ZaraScraper.numToSize: 
-#                         sizeCode = " (" + ZaraScraper.numToSize[sizeCode] + ")"
-#                     else: 
-#                         sizeCode = ""
-
                     sizeCode = " (" + size_dict[sku] + ")"
                     msg = sku + sizeCode
-                    context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
-
+                    await update.message.reply_text(msg)
 
     except SkuNotFoundException as ex:
-        context.bot.send_message(chat_id=update.effective_chat.id, 
-            text=str(ex))
-            
-def msg(update, context):
-    
-    msg = " ".join(context.args) 
-    
-    if(msg):
-        context.bot.send_message(chat_id="215433687", text=msg)
-                      
-def help(update, context):
-    
-    cmds = ["/help", "/info <url>", "/add <url> <size>", "/add <url> <sku>", 
-            "/list", "/remove <sku1> [<sku2> ...]", "/update",
-            "/monitor [<period in seconds>]", "/stop_monitor", "/backup", 
-            "/restore <url>", "/msg <message>"]
-    
-    helpstrings = ["display usage information",
-"get overview of available variants of item corresponding\
-to given zara url, including sku (stock keeping unit) numbers",
-"add product with given url and specified size \
-(XS-XXL or numeric depending on product) to the list of tracked items. On Zara, this \
-only works, if the product only comes in a single variant (e.g. \
-one color only).",
-"Add product with given url and sku to the list of \
-tracked items. Only needed for Zara products with multiple variants . \
-Skus are of the form 54614904-250-2 or 54614904-250-38 \
-where the last number determines size and the number in the middle \
-determines product variant. They can be queried with /info",
-"list currently tracked products",
-"Remove product with given sku from tracking",
-"Check for changes in tracked products (experimental!)",
-"Start automatic monitoring at intervals of period  (experimental!, period 1800s recommended)",
-"Stop automatic monitoring (experimental!)",
-"Generate a .json file containing information about currently tracked items",
-"Restore from a backup in the form of a .json file, which must be downloadable \
-at the supplied url (use e.g. pastebin.com and raw urls for this)",
-"Send a message to the developer (e.g. if you need access)\
- - include your telegram handle if you want a reply ;)"
-]
-    
-    msg = "Below are listed the available commands, their arguments (which are written in \
-between < and >) and optional arguments (in brackets). E.g. the command /info <url> would be executed as /info www.zara.com/someproductpage.html\n\n" + "\n\n".join([cmd + "  :  " + helpstr for cmd, helpstr in zip(cmds, helpstrings)])
-    
-    context.bot.send_message(chat_id=update.effective_chat.id, 
-        text=msg)
+        await update.message.reply_text(str(ex))
     
 
-def split_messages(msg, size=4096):
-    return [msg[i : i+4096] for i in range(0, len(msg), 4096)]
-
-def quiet_update(user_data):
+async def quiet_update(user_data):
     
     changeFlag = 0
     user_items = user_data.get('fashion_items')
@@ -333,9 +323,9 @@ def quiet_update(user_data):
         
     return [changeFlag, msg]
     
-def manual_update(update, context):
+async def manual_update(update, context):
     
-    [changeFlag, msg] = quiet_update(context.user_data)
+    [changeFlag, msg] = await quiet_update(context.user_data)
 
     logging.info("manual update called at " + str(datetime.now()))
     logging.info(msg + "\n\n")
@@ -343,25 +333,40 @@ def manual_update(update, context):
     if(len(msg) > 4096): 
         messages = split_messages(msg, 4096)
         for m in messages:
-            context.bot.send_message(chat_id=update.effective_chat.id, 
-                text=m, parse_mode=ParseMode.MARKDOWN_V2)
+            await context.bot.send_message(chat_id=update.effective_chat.id, 
+                text=m, parse_mode="MarkdownV2")
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, 
-            text=msg, parse_mode=ParseMode.MARKDOWN_V2)
+        await context.bot.send_message(chat_id=update.effective_chat.id, 
+            text=msg, parse_mode="MarkdownV2")
 
-    # TODO remove 
-    global user_context
-    user_context = context
+#     # TODO remove 
+#     global user_context
+#     user_context = context
     
         
-def start_regular_update(update, context):
+async def start_regular_update(update, context):
 
     context_dict = {'id' : update.message.chat_id, 'user_data' : 
                    context.user_data}
     
-    if(context.args and context.args[0].isnumeric()):
-        interval = float(context.args[0])
-    else:
+    if(context.args):
+        interval_string = context.args[0]
+
+        if(context.args[0].isnumeric()): # interpret as seconds
+            interval = int(interval_string)
+        elif(interval_string[-1] == 's'):
+            interval = int(interval_string[:-1])
+        elif(interval_string[-1] == 'm'): 
+            interval = int(interval_string[:-1])*60
+        elif(interval_string[-1] == 'h'): 
+            interval = int(interval_string[:-1])*60*60
+        else:
+            await context.bot.send_message(chat_id=update.effective_chat.id, 
+            text="Failed to parse monitoring interval. Defaulting to 5 minutes.")
+
+            interval = 5*60 # seconds
+
+    else: # if no interval is given, we default to 5 minutes
         interval = 5*60 # seconds
     
     job_name = "monitor_" + str(context_dict['id'])
@@ -369,19 +374,18 @@ def start_regular_update(update, context):
     if job_name not in [j.name for j in context.job_queue.jobs()]:
 
         context.job_queue.run_repeating(regular_update_callback,
-            interval=interval, first=0, context=context_dict,
-            name=job_name)
+            interval=interval, first=0, name=job_name, data=context_dict)
         
-        msg = "Started monitoring with interval " + str(interval) + "s"
+        msg = "Started monitoring with interval " + str(round(interval/60,2)) + "m"
     
     else: 
         msg = "Already monitoring."
 
-    context.bot.send_message(chat_id=update.effective_chat.id, 
+    await context.bot.send_message(chat_id=update.effective_chat.id, 
         text=msg)
 
     
-def stop_regular_update(update, context):
+async def stop_regular_update(update, context):
 
     job_name = "monitor_" + str(update.message.chat_id)
     job_list = context.job_queue.get_jobs_by_name(job_name)
@@ -389,23 +393,22 @@ def stop_regular_update(update, context):
     for job in job_list:
         job.schedule_removal()
     
-    context.bot.send_message(chat_id=update.effective_chat.id, 
-        text="Stopped monitoring")
+    await context.bot.send_message(chat_id=update.effective_chat.id, 
+        text="Stopped monitoring.")
 
         
-def regular_update_callback(context):
+async def regular_update_callback(context: CallbackContext):
                 
-    [changeFlag, msg] = quiet_update(
-        context.job.context['user_data'])
+    [changeFlag, msg] = await quiet_update(context.job.data['user_data'])
     
-    logging.info("update callback called at " + str(datetime.now()))
+    logging.info("Update callback called at " + str(datetime.now()) + ".")
     logging.info(msg + "\n\n")
     
     if(changeFlag == 1):
-        context.bot.send_message(chat_id=context.job.context['id'],
-        text=msg, parse_mode=ParseMode.MARKDOWN_V2)
+        await context.bot.send_message(chat_id=context.job.context['id'],
+        text=msg, parse_mode="MarkdownV2")
     
-def backup_to_json(update, context):
+async def backup_to_json(update, context):
         
     item_dict = context.user_data.get('fashion_items')
     json_dict = {sku : item.dict for sku, item in item_dict.items()}
@@ -417,29 +420,25 @@ def backup_to_json(update, context):
         with os.fdopen(fd, 'w') as tmp:
             tmp.write(jsonStr)
             
-        context.bot.send_document(chat_id=update.effective_chat.id,
+        await context.bot.send_document(chat_id=update.effective_chat.id,
             document=open(path,'rb'), filename="backup.json")
 
     finally:
         os.remove(path)
 
-def send_logs(update, context):
+async def send_logs(update, context):
     
     path = "/home/ubuntu/Notifier/notifier.log"
-    context.bot.send_document(chat_id=update.effective_chat.id,
+    await context.bot.send_document(chat_id=update.effective_chat.id,
         document=open(path,'rb'), filename="notifier.log")
-        
-def restore_from_online_json(update, context):
-    
-    # TODO this won't work yet for large lists of tracked 
-    # items due to telegrams msg size limits
 
-    url = context.args[0]
-    res = urllib.request.urlopen(url)
-    data = res.read()
-    jsonStr = data.decode('utf-8')
-        
-    json_dict = json.loads(jsonStr)
+def build_product_dict(json_dict): 
+    """
+    Given a dictionary of product information, returns a 
+    dictionary of product objects which can be used to populate 
+    the dict of items tracked by users
+    """
+
     item_dict = {}
 
     for sku, prod_dict in json_dict.items(): 
@@ -456,9 +455,50 @@ def restore_from_online_json(update, context):
             item_dict[sku]  = CosProduct(prod_dict) 
         elif('hm' in url):
             item_dict[sku]  = HmProduct(prod_dict) 
+
+    return item_dict
         
-    context.user_data['fashion_items'] = item_dict
+async def restore_from_url(update, context):
     
-    context.bot.send_message(chat_id=update.effective_chat.id,
+    # TODO this won't work yet for large lists of tracked 
+    # items due to telegrams msg size limits
+
+    url = context.args[0]
+    res = urllib.request.urlopen(url)
+    data = res.read()
+    jsonStr = data.decode('utf-8')
+    json_dict = json.loads(jsonStr)
+
+    context.user_data['fashion_items'] = build_product_dict(json_dict)
+    
+    await context.bot.send_message(chat_id=update.effective_chat.id,
         text="Restored. I advise you check I did everything right.")
 
+async def restore_from_file(update, context): 
+
+    # Check if the message contains a document
+    document = update.message.document
+
+    # Get the file object
+    file = await document.get_file()
+
+    # Define the download path
+    file_path = os.path.join("/tmp", document.file_name)
+
+    # Download the file
+    await file.download_to_drive(file_path)
+    await update.message.reply_text(f"File received and saved as {file_path}")
+
+    # open the file, read the json and restore the items
+    with open(file_path, 'r') as file:
+
+        try: 
+            json_dict = json.load(file)
+            context.user_data['fashion_items'] = build_product_dict(json_dict)
+            
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                   text="Restored. I advise you check I did everything right.")
+        
+        except Exception as ex:
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                   text="Error: " + str(ex))

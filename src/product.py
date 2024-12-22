@@ -7,12 +7,18 @@ class Product:
     def __init__(self, productDict):
 
         self.dict = productDict.copy()
+
+        # we print name before other attributes, so need to ensure it exists
+        assert "name" in self.dict, "Product must have a name"
         
         
     def __str__(self):
+
+        head_string = "name: " +  self.dict["name"] + "\n"
+        tail_string = "\n".join([key + ": " + str(val) 
+            for key, val in sorted(self.dict.items()) if key != "name"])
         
-        return "\n".join([key + ": " + str(val) 
-            for key, val in sorted(self.dict.items())])        
+        return head_string + tail_string
 
     def update_string(self, old_dict):
         """
