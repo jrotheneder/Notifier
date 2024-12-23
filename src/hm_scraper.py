@@ -4,7 +4,6 @@ import json
 import re
 
 from .exceptions import SkuNotFoundException
-from jsoncomment import JsonComment # https://stackoverflow.com/questions/23705304/can-json-loads-ignore-trailing-commas
 
 class HmScraper:
     
@@ -31,7 +30,7 @@ class HmScraper:
         jsonStr = script.contents[0]
         jsonStr = jsonStr[jsonStr.find('= {') + 1 : jsonStr.rfind('}')+1]
         jsonStr = jsonStr.replace('\'','\"').replace('\r','\n')
-        jsonStr = re.sub("isDesktop \?.* : ", "", jsonStr)
+        jsonStr = re.sub("isDesktop \\?.* : ", "", jsonStr)
         jsonStr = jsonStr.replace("%\"/","%\",") 
 
         jsonObj = json.loads(jsonStr) 
