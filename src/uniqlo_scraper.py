@@ -1,4 +1,4 @@
-import requests, bs4, json, re, os, time
+import requests, bs4, json, re, os, time, shutil
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -37,11 +37,8 @@ class UniqloScraper:
         """ Obtain a json containing data on product variants corresponding
             to the given url (mostly size variations on Uniqlo) """
 
-        # Path to WebDriver (assumed to be located in the parent dir of this file)
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        parent_dir = os.path.dirname(script_dir)
-        webdriver_path = os.path.join(parent_dir, "chromedriver")
-#         webdriver_path = "/home/ubuntu/Notifier/chromedriver"
+        # Path to WebDriver
+        webdriver_path = shutil.which("chromedriver") #/usr/bin/chromedriver
 
         # Set up options
         options = webdriver.ChromeOptions()
@@ -88,7 +85,7 @@ class UniqloScraper:
             driver.quit()
 
             # on the server, chrome instances sometimes remain after calling driver.quit()
-            os.system('killall chrome') 
+#             os.system('killall chrome') 
 
 
 

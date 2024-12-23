@@ -4,6 +4,7 @@ import os, sys, tempfile
 import urllib.request, urllib.parse
 from datetime import datetime
 import logging
+import asyncio # for propert shutdown
 
 # Add the 'src' folder to the Python path
 #sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
@@ -36,7 +37,8 @@ async def help(update, context):
     cmds = ["/help", "/info <url>", "/add <url> [<size>]", "/add <url> [<sku>]", 
             "/list", "/remove <sku1> [<sku2> ...]", "/update",
             "/monitor [<period in seconds>]", "/stop_monitor", "/backup", 
-            "/restore <url>", "send a .json file structured as the output of /backup"]
+            "/restore <url>", "send a .json file structured as the output of\
+            /backup", "/logs", "/shutdown"]
     
     helpstrings = ["display usage information",
 "get overview of available variants of item corresponding\
@@ -58,7 +60,7 @@ determines product variant. They can be queried with /info",
 "Generate a .json file containing information about currently tracked items",
 "Restore from a backup in the form of a .json file, which must be downloadable \
 at the supplied url (use e.g. pastebin.com and raw urls for this)",
-"Restore from a backup json file"]
+"Restore from a backup json file", "Send the log file", "Shutdown the bot"]
     
     msg = "Below are listed the available commands, their arguments (which are \
 written in between < and >) and optional arguments (in brackets). E.g. the command \
@@ -69,7 +71,6 @@ written in between < and >) and optional arguments (in brackets). E.g. the comma
                       
 async def add(update, context):
 
-    print("Entered add")
     product = await construct_product(update, context)
     if(product == None): # nothing found, user has been informed, return
         return
@@ -502,3 +503,10 @@ async def restore_from_file(update, context):
         except Exception as ex:
             await context.bot.send_message(chat_id=update.effective_chat.id,
                    text="Error: " + str(ex))
+
+async def shutdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    await update.message.reply_text("Shutting down the bot...")
+    await context.application.stop_running()
+    await context.application.stop()
+    sys.exit("Bot and script have been stopped.")

@@ -1,6 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-import time
+import time,shutil
 
 url1 = "https://example.com/"
 url2 = "https://www.uniqlo.com/eu-at/en/products/E457622-000/00?colorDisplayCode=06&sizeDisplayCode=004"
@@ -8,7 +8,7 @@ url2 = "https://www.uniqlo.com/eu-at/en/products/E457622-000/00?colorDisplayCode
 url = url2
 
 # Path to your WebDriver 
-webdriver_path = "/home/ubuntu/Notifier/chromedriver"
+webdriver_path = shutil.which("chromedriver") #/usr/bin/chromedriver
 
 options = webdriver.ChromeOptions()
 options.add_argument("--headless")  # Run in headless mode (no GUI)
@@ -26,7 +26,7 @@ try:
     driver.get(url)
 
     print("Point 2\n", flush=True) 
-    time.sleep(1)  # Replace with explicit waits for better performance
+    time.sleep(3)  # Replace with explicit waits for better performance
 
     # Get the fully loaded HTML
     page_source = driver.page_source

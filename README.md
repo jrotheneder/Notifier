@@ -3,21 +3,43 @@
 ####   Description 
 A bot used for scraping data from the websites of selected
 fashion retailers, tracking items and notifying by telegram messages upon 
-changes in price or availability.
+changes in price or availability. The main **features** are: 
+* Per-user tracking of multiple variants (sizes, colors) of an item; adding,
+  listing and removing items. 
+* Notification upon changes in price and availability status of tracked items.
+  The bot can be queried to check for changes manually or instructed to do so at
+  specified time intervals.
+* Export of tracked items to a .json file, restoring the list of tracked items
+  from such a file.
+* Currently supported retailers (Dec. 24'): **Zara** & **Uniqlo**. 
 
-**Features**: 
-* Per-user tracking of changes in price and availability status of selected items.
-* Tracking of multiple variants (sizes, colors) of an item.
-* Notification by telegram messages. 
-* Currently supported (12/24): Zara & Uniqlo. 
+#### Instructions  
+* Notifier can be run (ideally on a server[^1]) by calling `python3
+notifier_main.py`. 
+* In order to run, there needs to be a `config` folder in the project
+root directory with two files,`bot_token.txt` (see the telegram bot tutorial 
+["From BotFather to 'Hello World'
+"](https://core.telegram.org/bots/tutorial#obtain-your-bot-token)), and
+`allowed_users.txt`, containing linewise the telegram handles of allowed users.
+* The first user listed in `allowed_users.txt` can issue the command `/shutdown`
+  to the bot which exits graciously and ensures that tracked items are stored
+  persistently. 
+* For usage instructions, call `/help` from the bot.
+
+[^1]:Some sites (e.g. Uniqlo) require the Selenium framework, for which the
+  server should not be too weak. We found a two-core VM.Standard.A1.Flex
+  (Ampere/ARM) server from Oracle to be sufficient, while an VM.Standard.E5.Flex
+  (AMD) instance proved too slow. To get Selenium running on an arm64 based
+  architecture, see [this
+  answer](https://stackoverflow.com/a/78946315/5775322) on stackoverflow.
 
 #### Overview of the code
 
 ##### Core routines
 | file | description | 
 | -----------------------------  | ----------------------------- | 
-| `notifier_bot.py` | Main functions of the bot (bot-user interaction, querying, adding & removing products, tracking, updating). 
-| `notifier.ipynb` | Jupyter notebook used to start and stop the bot, manage persistence & control access. To be executed serverside
+| `notifier_main.py` | Main routine, to be executed on server side.
+| `notifier_bot.py` | Core functions of the bot (bot-user interaction, querying, adding & removing products, tracking, updating). 
 
 
 ##### Extraction / Scraping
