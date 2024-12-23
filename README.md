@@ -22,8 +22,8 @@ root directory with two files,`bot_token.txt` (see the telegram bot tutorial
 "](https://core.telegram.org/bots/tutorial#obtain-your-bot-token)), and
 `allowed_users.txt`, containing linewise the telegram handles of allowed users.
 * The first user listed in `allowed_users.txt` can issue the command `/shutdown`
-  to the bot which exits graciously and ensures that tracked items are stored
-  persistently. 
+  to the bot which terminates the bot graciously and ensures that tracked items
+  are stored persistently. 
 * For usage instructions, call `/help` from the bot.
 
 [^1]:Some sites (e.g. Uniqlo) require the Selenium framework, for which the

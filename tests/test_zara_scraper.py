@@ -10,16 +10,16 @@ url1 = "https://www.zara.com/at/de/pullover-mit-geripptem-stehkragen-und-reissve
 url2 = "https://www.zara.com/at/de/abstrakter-jacquard-pullover-p09598397.html?v1=394906214&v2=2432265"
 url3 = "https://www.zara.com/at/de/flanellhose-mit-zierfalten-p06861858.html?v1=412099077&v2=2432096"
 
-url = url2
+url = url3
 sku = "410580975-500-5"
 
 jsonObj = ZaraScraper.getProductList(url)
-# print(json.dumps(jsonObj, indent=4))
-# print("\n\n")
+print(json.dumps(jsonObj, indent=4))
+print("\n\n")
 
 [name, skus, skus_sans_sizes, sizes, image_url_dict, color_dict] \
         = ZaraScraper.skuSummary(jsonObj) 
-print(ZaraScraper.skuSummary(jsonObj)) 
+# print(ZaraScraper.skuSummary(jsonObj)) 
 # print(skus)
 # print(image_url_dict)
 # print(color_dict)
@@ -31,4 +31,4 @@ print(ZaraScraper.skuSummary(jsonObj))
 # print(ZaraScraper.getProductFromSize(url2, "L"))
 
 
-print(test_zara_info.zara_item_info_helper(url1))
+# print(test_zara_info.zara_item_info_helper(url1))
