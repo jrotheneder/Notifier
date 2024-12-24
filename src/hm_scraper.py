@@ -39,11 +39,11 @@ class HmScraper:
             # the correct data is loaded. 
             # NOTE: if the availability of items is frequently wrong, 
             # increasing the wait time here might help.
-            time.sleep(2)
-#             WebDriverWait(driver, 3).until(
-#                 EC.presence_of_element_located((By.XPATH, 
-#                     "//script[@type='application/ld+json']"))
-#             )
+            time.sleep(2.5)
+            WebDriverWait(driver, 3).until(
+                EC.presence_of_element_located((By.XPATH, 
+                    "//script[@type='application/ld+json']"))
+            )
 
             # Get the fully loaded HTML
             page_source = driver.page_source
@@ -75,7 +75,7 @@ class HmScraper:
             return jsonObj_ldjson
 
         except Exception as ex:
-            raise SkuNotFoundException(f"Exception {ex} occured in getProductList(). \n" \
+            raise SkuNotFoundException(f"Exception {ex} occured in scrapeProductData(). \n" \
                     f"Does the url {url} still exist?")
         finally:
             # Close and quit the browser
@@ -102,7 +102,7 @@ class HmScraper:
         available_sizes = [entry["name"] for entry in size_data]
 
         if size not in available_sizes:
-            raise SizeNotFoundException(f"Size {size} not found for this \
+            raise SkuNotFoundException(f"Size {size} not found for this \
                     product. Available sizes are {available_sizes}")
         else:
             # Find the correct sku for the item given the size

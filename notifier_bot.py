@@ -119,7 +119,7 @@ async def construct_product(update, context):
 
         elif('hm' in url): 
             item_identifier = context.args[1]
-            product = HmProduct.fromUrlSize(url, size) 
+            product = HmProduct.fromUrlSize(url, item_identifier) 
 
         else:
             raise UnknownCommandError("Neither zalando, zara nor uniqlo url \
