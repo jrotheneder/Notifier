@@ -8,19 +8,17 @@ class HmProduct(Product):
         super().__init__(productDict)
         
     @classmethod
-    def fromUrl(cls, url):
+    def fromUrlSize(cls, url, size):
         
-        return cls(HmScraper.getProductFromUrl(url))   
+        return cls(HmScraper.getProductFromUrlSize(url, size))   
         
     def update(self):
 
         url = self.dict['url']
+        size = self.dict['size']
         
-        newDict = HmScraper.getProductFromUrl(url)    
+        newDict = HmScraper.getProductFromUrlSize(url, size)    
                 
-#       if(len(self.dict) != len(newDict)):
-#           raise RuntimeError("Error in update(): new dict has more items than old dict")
-        
         old_values = {}
         for key in self.dict.keys(): 
             if(self.dict[key] != newDict[key]):

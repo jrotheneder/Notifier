@@ -13,6 +13,10 @@ changes in price or availability. The main **features** are:
   from such a file.
 * Currently supported retailers (Dec. 24'): **Zara** & **Uniqlo**. 
 
+**Demo**: 
+
+https://github.com/user-attachments/assets/0532228f-b43e-4a1c-9a12-c48b7767f8a7
+
 #### Instructions  
 * Notifier can be run (ideally on a server[^1]) by calling `python3
 notifier_main.py`. 
