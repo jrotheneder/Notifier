@@ -403,9 +403,9 @@ async def regular_update_callback(context: CallbackContext):
     logging.info(msg + "\n\n")
     
     if(changeFlag == 1):
-        await context.bot.send_message(chat_id=context.job.context['id'],
-        text=msg, parse_mode="MarkdownV2")
-    
+        await context.bot.send_message(context.job.data['id'], text=msg, 
+                                       parse_mode="MarkdownV2")
+
 async def backup_to_json(update, context):
         
     item_dict = context.user_data.get('fashion_items')
