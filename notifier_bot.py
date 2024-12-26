@@ -27,45 +27,41 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 # raise httpx logs to warning level to get a cleaner log
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
-# For testing purposes only 
-async def msg(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None: 
-    """Echo the user message."""
-    await update.message.reply_text(update.message.text)
-
 async def help(update, context):
-    
-    cmds = ["/help", "/info <url>", "/add <url> [<size>]", "/add <url> [<sku>]", 
+    bot_help_cmds = ["/help", "/info <url>", "/add <url> [<size>]", "/add <url> [<sku>]", 
             "/list", "/remove <sku1> [<sku2> ...]", "/update",
-            "/monitor [<period in seconds>]", "/stop_monitor", "/backup", 
+            "/monitor [<period>][<unit(=s|m|h)>]", "/stop_monitor", "/backup", 
             "/restore <url>", "send a .json file structured as the output of\
-            /backup", "/logs", "/shutdown"]
-    
-    helpstrings = ["display usage information",
-"get overview of available variants of item corresponding\
-to given zara url, including sku (stock keeping unit) numbers",
-"add product with given url and specified size \
-(XS-XXL or numeric depending on product) to the list of tracked items. On Zara, this \
-only works, if the product only comes in a single variant (e.g. \
-one color only). For uniqlo, the size can be omitted.",
-"Add product with given url and sku to the list of \
-tracked items. This is needed for Zara products with multiple variants. \
-Skus are of the form 54614904-250-2 or 54614904-250-38 \
-where the last number determines size and the number in the middle \
-determines product variant. They can be queried with /info",
-"list currently tracked products",
-"Remove product with given sku from tracking",
-"Check for changes in tracked products (experimental!)",
-"Start automatic monitoring at intervals of period",
-"Stop automatic monitoring",
-"Generate a .json file containing information about currently tracked items",
-"Restore from a backup in the form of a .json file, which must be downloadable \
-at the supplied url (use e.g. pastebin.com and raw urls for this)",
-"Restore from a backup json file", "Send the log file", "Shutdown the bot"]
+            /backup", "/logs", "/shutdown", "/empty"]
+
+    bot_help_strings = ["display usage information",
+    "get overview of available variants of item corresponding\
+    to given zara url, including sku (stock keeping unit) numbers",
+    "add product with given url and specified size \
+    (XS-XXL or numeric depending on product) to the list of tracked items. On Zara, this \
+    only works, if the product only comes in a single variant (e.g. \
+    one color only). For uniqlo, the size can be omitted.",
+    "Add product with given url and sku to the list of \
+    tracked items. This is needed for Zara products with multiple variants. \
+    Skus are of the form 54614904-250-2 or 54614904-250-38 \
+    where the last number determines size and the number in the middle \
+    determines product variant. They can be queried with /info",
+    "list currently tracked products",
+    "Remove product with given sku from tracking",
+    "Check for changes in tracked products (experimental!)",
+    "Start automatic monitoring at intervals of period",
+    "Stop automatic monitoring",
+    "Generate a .json file containing information about currently tracked items",
+    "Restore from a backup in the form of a .json file, which must be downloadable \
+    at the supplied url (use e.g. pastebin.com and raw urls for this)",
+    "Restore from a backup json file", "Send the log file", "Shutdown the bot",
+    "Empty the list of tracked items"]
     
     msg = "Below are listed the available commands, their arguments (which are \
 written in between < and >) and optional arguments (in brackets). E.g. the command \
 /info <url> can be executed as /info www.zara.com/someproductpage.html\n\n" + \
-"\n\n".join([cmd + "  :  " + helpstr for cmd, helpstr in zip(cmds, helpstrings)])
+"\n\n".join([cmd + " - " + helpstr for cmd, helpstr in zip(bot_help_cmds,
+                                                             bot_help_strings)])
     
     await update.message.reply_text(msg)
                       
@@ -122,7 +118,8 @@ async def construct_product(update, context):
             product = CosProduct.fromUrl(url) 
 
         elif('hm' in url): 
-            product = HmProduct.fromUrl(url) 
+            item_identifier = context.args[1]
+            product = HmProduct.fromUrlSize(url, item_identifier) 
 
         else:
             raise UnknownCommandError("Neither zalando, zara nor uniqlo url \
@@ -232,7 +229,7 @@ async def default_item_info(update, context): # called as default without comman
     url = ZaraScraper.cleanUrl(update.message.text)
 
     if('zara' in url):
-        zara_item_info_helper(update, context, url)
+        await zara_item_info_helper(update, context, url)
 
     else:
         await update.message.reply_text("Send a zara url to get item information")
@@ -406,9 +403,9 @@ async def regular_update_callback(context: CallbackContext):
     logging.info(msg + "\n\n")
     
     if(changeFlag == 1):
-        await context.bot.send_message(chat_id=context.job.context['id'],
-        text=msg, parse_mode="MarkdownV2")
-    
+        await context.bot.send_message(context.job.data['id'], text=msg, 
+                                       parse_mode="MarkdownV2")
+
 async def backup_to_json(update, context):
         
     item_dict = context.user_data.get('fashion_items')
@@ -507,6 +504,6 @@ async def restore_from_file(update, context):
 async def shutdown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Shutting down the bot...")
-    await context.application.stop_running()
+    context.application.stop_running()
     await context.application.stop()
     sys.exit("Bot and script have been stopped.")

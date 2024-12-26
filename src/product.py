@@ -40,3 +40,4 @@ class Product:
 
     def productType(self):
         return "abstractProduct"
+

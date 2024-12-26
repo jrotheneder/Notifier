@@ -13,6 +13,10 @@ changes in price or availability. The main **features** are:
   from such a file.
 * Currently supported retailers (Dec. 24'): **Zara** & **Uniqlo**. 
 
+**Demo**: 
+
+https://github.com/user-attachments/assets/0532228f-b43e-4a1c-9a12-c48b7767f8a7
+
 #### Instructions  
 * Notifier can be run (ideally on a server[^1]) by calling `python3
 notifier_main.py`. 
@@ -22,8 +26,8 @@ root directory with two files,`bot_token.txt` (see the telegram bot tutorial
 "](https://core.telegram.org/bots/tutorial#obtain-your-bot-token)), and
 `allowed_users.txt`, containing linewise the telegram handles of allowed users.
 * The first user listed in `allowed_users.txt` can issue the command `/shutdown`
-  to the bot which exits graciously and ensures that tracked items are stored
-  persistently. 
+  to the bot which terminates the bot graciously and ensures that tracked items
+  are stored persistently. 
 * For usage instructions, call `/help` from the bot.
 
 [^1]:Some sites (e.g. Uniqlo) require the Selenium framework, for which the

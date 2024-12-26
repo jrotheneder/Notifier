@@ -1,8 +1,14 @@
-import requests
-import bs4
-import json
-import re
+import requests, bs4, json, re, os, time, shutil
+from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
+from .product import Product
+from .webdriverhelper import WebDriverHelper
 from .exceptions import *
 
 class ZaraScraper:
@@ -50,6 +56,56 @@ class ZaraScraper:
                     the url " + url + " still exist?")
             
         return jsonObj
+
+    @staticmethod
+    def getProductList2(url):
+        """ Obtain a json containing a list of products corresponding
+            to the given url. This method differs from getProductList 
+            in that it uses selenium, which is sometimes more accurate"""
+    
+        # with html queries attached, the sku received varies (?)
+        url = ZaraScraper.cleanUrl(url)
+    
+        driver_helper = WebDriverHelper()
+        driver = driver_helper.driver
+
+        try:
+            # Open a web page
+            driver.get(url)
+
+            # Wait for the <script type="application/ld+json"> element to load
+            # the first time the json is loaded, it sometimes contains wrong 
+            # data. We wait for a fixed amount of time, hoping that after that, 
+            # the correct data is loaded. 
+            # NOTE: if the availability of Uniqlo items is frequently wrong, 
+            # increasing the wait time here might help.
+            time.sleep(3) 
+            page_source = driver.page_source
+            print(page_source)
+            WebDriverWait(driver, 30).until(
+                EC.presence_of_element_located((By.XPATH, 
+                    "//script[@type='application/ld+json']"))
+            )
+
+            # Get the fully loaded HTML
+
+            # Parse the HTML, locate the script element and extract the json
+            soup = bs4.BeautifulSoup(page_source, "html.parser")
+            soup_result = soup.find_all("script", {"type" : "application/ld+json"})
+            
+            assert(len(soup_result) == 1)
+            json_str = soup_result[0].get_text()
+            jsonObj = json.loads(json_str) 
+
+            return jsonObj 
+            
+
+        except Exception as ex:
+            raise SkuNotFoundException(f"Exception {ex} occured in getProductList(). \n" \
+                    f"Does the url {url} still exist?")
+        finally:
+            driver_helper.close()
+
 
     @staticmethod
     def skuSummary(jsonObj):
@@ -128,9 +184,19 @@ class ZaraScraper:
         
     @staticmethod
     def cleanUrl(url):
-        # with html queries attached, the skus received vary, so we 
-        # remove these queries to get consistency
-        return url.split('?')[0]
+        """
+        Removes all query parameters from a URL except for the 'v1' parameter.
+        """
+        parsed_url = urlparse(url)
+        query_params = parse_qs(parsed_url.query)
+
+        # Keep only the 'v1' parameter
+        filtered_params = {'v1': query_params.get('v1', [])}
+
+        # Reconstruct the URL with the filtered parameters
+        new_query = urlencode(filtered_params, doseq=True)
+        new_parsed_url = parsed_url._replace(query=new_query)
+        return urlunparse(new_parsed_url)
                
     @staticmethod
     def getProductFromSku(url, sku):

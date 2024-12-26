@@ -6,6 +6,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
+from .product import Product
+from .webdriverhelper import WebDriverHelper
 from .exceptions import *
 
 class UniqloScraper:
@@ -37,16 +39,9 @@ class UniqloScraper:
         """ Obtain a json containing data on product variants corresponding
             to the given url (mostly size variations on Uniqlo) """
 
-        # Path to WebDriver
-        webdriver_path = shutil.which("chromedriver") #/usr/bin/chromedriver
 
-        # Set up options
-        options = webdriver.ChromeOptions()
-        options.add_argument("--headless")  # Enable headless (no gui) mode
-
-        # Initialize WebDriver with headless mode
-        service = Service(webdriver_path)
-        driver = webdriver.Chrome(service=service, options=options)
+        driver_helper = WebDriverHelper()
+        driver = driver_helper.driver
 
         try:
             # Open a web page
@@ -80,13 +75,7 @@ class UniqloScraper:
             raise SkuNotFoundException(f"Exception {ex} occured in getProductList(). \n" \
                     f"Does the url {url} still exist?")
         finally:
-            # Close and quit the browser
-            driver.close()
-            driver.quit()
-
-            # on the server, chrome instances sometimes remain after calling driver.quit()
-#             os.system('killall chrome') 
-
+            driver_helper.close()
 
 
     @staticmethod

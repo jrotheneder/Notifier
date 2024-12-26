@@ -1,0 +1,7 @@
+python-telegram-bot==21.9
+urllib3==2.2.3
+six==1.17.0
+selenium==4.27.1
+requests==2.32.3
+beautifulsoup4==4.12.3
+

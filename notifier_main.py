@@ -28,7 +28,6 @@ def main():
 
     HelpHandler = CommandHandler('help', help)
     StartHandler = CommandHandler('start', help)
-    MsgHandler = CommandHandler('msg', msg)
     addHandler = CommandHandler('add', add, user_filter, block=True)
     removeHandler = CommandHandler('remove', remove, block=True)
     listTrackedHandler = CommandHandler('list', list_tracked_items)
@@ -54,7 +53,6 @@ def main():
 
     application.add_handler(HelpHandler)
     application.add_handler(StartHandler)
-    application.add_handler(MsgHandler)
     application.add_handler(InfoHandler)
     application.add_handler(addHandler)
     application.add_handler(removeHandler)
