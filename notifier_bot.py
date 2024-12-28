@@ -28,7 +28,10 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 async def help(update, context):
-    bot_help_cmds = ["/help", "/info <url>", "/add <url> [<size>]", "/add <url> [<sku>]", 
+    bot_help_cmds = ["/help", "/info <url>", 
+            "/add <url> <size>", 
+            "/add <zaraurl> <size> <color_prefix>", 
+            "/add <zaraurl> <sku>", 
             "/list", "/remove <sku1> [<sku2> ...]", "/update",
             "/monitor [<period>][<unit(=s|m|h)>]", "/stop_monitor", "/backup", 
             "/restore <url>", "send a .json file structured as the output of\
@@ -36,13 +39,16 @@ async def help(update, context):
 
     bot_help_strings = ["display usage information",
     "get overview of available variants of item corresponding\
-    to given zara url, including sku (stock keeping unit) numbers",
+    to given Zara url, including sku (stock keeping unit) numbers",
     "add product with given url and specified size \
     (XS-XXL or numeric depending on product) to the list of tracked items. On Zara, this \
     only works, if the product only comes in a single variant (e.g. \
-    one color only). For uniqlo, the size can be omitted.",
-    "Add product with given url and sku to the list of \
-    tracked items. This is needed for Zara products with multiple variants. \
+    one color only).",
+    "Add Zara product with given url, size and color (for which a prefix, i.e. \
+    'Be' instead of 'Beige' suffices when no other color starts with 'Be') to \
+    the list of tracked items", 
+    "Add Zara product with given url and sku to the list of \
+    tracked items. This can be used for Zara products with multiple variants. \
     Skus are of the form 54614904-250-2 or 54614904-250-38 \
     where the last number determines size and the number in the middle \
     determines product variant. They can be queried with /info",
@@ -105,10 +111,21 @@ async def construct_product(update, context):
             product = ZalandoProduct.fromUrlSize(url, item_identifier) 
 
         elif('zara' in url):
+
             item_identifier = context.args[1]
-            if(len(item_identifier) <= 5): # size
+
+            if len(context.args) >= 3: # assume context.args[2] is a color prefix
+                color_prefix = context.args[2]
+                size = item_identifier
+                product = ZaraProduct.fromUrlSizeColor(url, item_identifier, color_prefix)
+
+            elif(len(context.args) == 2 and len(item_identifier) <= 5): 
+                # assume context.args[1] (= item_identifier) is a size string, 
+                # for which the item must have only a single varaint 
+                # NOTE this fails for sizes which are long strings e.g. "StandardSize"
                 product = ZaraProduct.fromUrlSize(url, item_identifier)
-            else:
+
+            else: # consider item_identifier to be a sku
                 product = ZaraProduct.fromUrlSku(url, item_identifier)
 
         elif('uniqlo' in url):
@@ -337,11 +354,6 @@ async def manual_update(update, context):
         await context.bot.send_message(chat_id=update.effective_chat.id, 
             text=msg, parse_mode="MarkdownV2")
 
-#     # TODO remove 
-#     global user_context
-#     user_context = context
-    
-        
 async def start_regular_update(update, context):
 
     context_dict = {'id' : update.message.chat_id, 'user_data' : 

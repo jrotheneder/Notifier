@@ -81,8 +81,7 @@ class ZaraScraper:
             # increasing the wait time here might help.
             time.sleep(3) 
             page_source = driver.page_source
-            print(page_source)
-            WebDriverWait(driver, 30).until(
+            WebDriverWait(driver, 3).until(
                 EC.presence_of_element_located((By.XPATH, 
                     "//script[@type='application/ld+json']"))
             )
@@ -140,15 +139,39 @@ class ZaraScraper:
             image_url_dict[sku_sans_size] = item["image"]  
             color_dict[sku_sans_size] = item["color"]  
 
-
-#       import pprint 
-#       pp = pprint.PrettyPrinter(depth=4) 
-#       pp.pprint(image_url_dict) 
-
         return [name, skus, skus_sans_sizes, size_dict, image_url_dict, color_dict]  
 
     @staticmethod
-    def extract(jsonObj, url, sku): 
+    def extract_helper(url, item):
+        """
+        Given a dict containing information about a single item, extract
+        relevant information for further processing
+        """
+
+        # NOTE: as of late, sizes are explicitly given in the json
+#       size_name = sku.split('-')[-1]
+#       # convert 1,...6, to XS,...XL
+#       if size_name in ZaraScraper.numToSize: 
+#           size_name = ZaraScraper.numToSize[size_name]
+        
+        name = item["name"]
+        size_name = item["size"]
+        offer = item["offers"]  
+        price = offer["price"] + " " + offer["priceCurrency"]    
+        color = item["color"]
+        sku = item["sku"]
+
+        if "availability" in offer: # this suggests the item is available
+            availability = offer["availability"].split('/')[-1]     
+        else: 
+            availability = "OutOfStock/Unknown"
+        
+        return {'sku' : sku, 'name' : name, 'url' : url, \
+                'price' : price, 'size' : size_name, 'status' : 'online', \
+                'availability' : availability, 'color' : color}  
+
+    @staticmethod
+    def extract_by_sku(jsonObj, url, sku): 
         """
         Given jsonObj and sku, extract relevant information about the item with
         the given sku
@@ -157,35 +180,38 @@ class ZaraScraper:
 
         for item in jsonObj: 
             if item["sku"] == sku:  # located item 
-                
-                # NOTE: as of late, sizes are explicitly given in the json
-#                 size_name = sku.split('-')[-1]
-#                 # convert 1,...6, to XS,...XL
-#                 if size_name in ZaraScraper.numToSize: 
-#                     size_name = ZaraScraper.numToSize[size_name]
-                
-                size_name = item["size"]
-                offer = item["offers"]  
-                price = offer["price"] + " " + offer["priceCurrency"]    
-                color = item["color"]
-
-                if "availability" in offer: # this suggests the item is available
-                    availability = offer["availability"].split('/')[-1]     
-                else: 
-                    availability = "OutOfStock/Unknown"
-                
-                return {'sku' : sku, 'name' : name, 'url' : url, \
-                        'price' : price, 'size' : size_name, 'status' : 'online', \
-                        'availability' : availability, 'color' : color}  
+                return ZaraScraper.extract_helper(url, item)    
 
         raise SkuNotFoundException("sku " + sku + ", " + url \
-            + " not found in extract() (but > 0 skus found). "\
-            + "Correct sku, item available?")
+            + " not found in extract_by_sku(). Correct sku, item available?")
+
+    @staticmethod
+    def extract_by_size_color(jsonObj, url, size, color_prefix): 
+        """
+        Given jsonObj and size and color, extract relevant information about the
+        item with the given size and color
+        """
+
+        # check if there is a unique item in jsonObj with the right 
+        # size and color_prefix
+        items = [item for item in jsonObj 
+            if (item["color"].startswith(color_prefix) and item["size"] == str(size))]
+
+        if len(items) == 0: 
+            raise ItemNotFoundException(f"No item found with size {size} and "
+                f"color (prefix) {color_prefix}.")
+        elif len(items) > 1: 
+            raise ItemNotFoundException(f"Multiple items found with these \
+                    properties. Is the color (prefix) {color_prefix} too short?")
+
+        return ZaraScraper.extract_helper(url, items[0])
         
     @staticmethod
     def cleanUrl(url):
         """
-        Removes all query parameters from a URL except for the 'v1' parameter.
+        Removes all query parameters from a URL except for the 'v1' parameter, 
+        which sometimes is the difference between an item being reachable 
+        at the given url or not 
         """
         parsed_url = urlparse(url)
         query_params = parse_qs(parsed_url.query)
@@ -202,7 +228,7 @@ class ZaraScraper:
     def getProductFromSku(url, sku):
 
         jsonObj = ZaraScraper.getProductList(url)
-        return ZaraScraper.extract(jsonObj, url, sku) 
+        return ZaraScraper.extract_by_sku(jsonObj, url, sku) 
 
     @staticmethod
     def getProductFromSize(url, size):
@@ -229,10 +255,20 @@ class ZaraScraper:
 
 #         for sku in skus: 
 #             if sku.split("-")[-1] == size: 
-#                 return ZaraScraper.extract(jsonObj, url, sku)
+#                 return ZaraScraper.extract_by_sku(jsonObj, url, sku)
 
         for item in jsonObj: 
             if item["size"] == size: 
-                return ZaraScraper.extract(jsonObj, url, item["sku"])
+                return ZaraScraper.extract_by_sku(jsonObj, url, item["sku"])
 
-        raise(RuntimeError("Size not found."))
+        raise(SizeNotFoundException(f"Size {size} not found."))
+
+    @staticmethod
+    def getProductFromSizeColor(url, size, color_prefix):
+        """
+        Given a url, size and color_prefix, return a dict containing 
+        essential information about the product with the given size and color
+        """
+
+        jsonObj = ZaraScraper.getProductList(url)
+        return ZaraScraper.extract_by_size_color(jsonObj, url, size, color_prefix)

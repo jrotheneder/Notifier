@@ -21,9 +21,6 @@ class Product:
         return head_string + tail_string
 
     def update_string(self, old_dict):
-        """
-        
-        """
         
         def distinguish(key):
             

@@ -53,7 +53,7 @@ class UniqloScraper:
             # the correct data is loaded. 
             # NOTE: if the availability of Uniqlo items is frequently wrong, 
             # increasing the wait time here might help.
-            time.sleep(5) 
+            time.sleep(4) 
 #             WebDriverWait(driver, 3).until(
 #                 EC.presence_of_element_located((By.XPATH, 
 #                     "//script[@type='application/ld+json']"))
@@ -137,7 +137,8 @@ class UniqloScraper:
             colorCode += " ("+ UniqloScraper.colorCodes[colorCode] + "?)"
 
         productJson = {'sku':sku, 'url':url, 'price':price, 'name': name,
-                'size': sizeCode, 'availability': availability, 'colorCode': colorCode }
+                'size': sizeCode, 'availability': availability, 
+                'status': 'online', 'colorCode': colorCode }
         
         return productJson
     
